@@ -1,386 +1,217 @@
 import sys
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 import requests
-from PyQt5.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QLabel,
-    QHBoxLayout,
-    QVBoxLayout,
-    QWidget,
-    QSpacerItem,
-    QSizePolicy,
-    QLineEdit,
-    QPushButton,
-    QGridLayout,
-    QFrame,
-    QScrollArea,
-)
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QPainter, QBitmap, QPainterPath, QPalette, QColor
-# Add the import statement for QtCore
-from PyQt5 import QtCore
+import datetime
+import json
+ 
+class MainWindow(QMainWindow):
+    programs = json.load(open('dummpyData.json')) ['programs']
+    client = json.load(open('dummpyClientData.json')) ['client']
+    mode = 0 # [0=view, 1=edit] 
+    
+    def __init__(self, parent = None):
+        super(MainWindow, self).__init__(parent)
+        self.setMinimumSize(800,500)
+        self.tab_widget = QTabWidget(self)
+        self.setCentralWidget(self.tab_widget)
 
-from extraWindows import EnrollWindow
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tab3 = QWidget()
+        self.tab_widget.addTab(self.tab1, "Programs")
+        self.tab_widget.addTab(self.tab2, "Tab 2")
+        self.tab_widget.addTab(self.tab3, "Tab 3")
 
-
-
-class LabelsWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        # Create a horizontal layout for the labels
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignLeft)
-
-        # Add three label widgets to the horizontal layout
-        label1 = QLabel("Programs", self)
-        label1.setStyleSheet("font-weight: bold; font-size: 24px;")
-        label1.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-
-        label2 = QLabel("Users", self)
-        label2.setStyleSheet("font-weight: bold; font-size: 24px; color: #c0c0c0;")
-        label2.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-
-        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        label3 = QLabel("Admin", self)
-        label3.setStyleSheet("font-weight: bold; font-size: 24px; color: #c0c0c0;")
-        label3.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-
-        layout.addWidget(label1)
-        layout.addWidget(label2)
-        layout.addItem(spacer)
-        layout.addWidget(label3)
-
-        self.setLayout(layout)
-
-
-class InputWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        # Create a horizontal layout for the text field and button
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 10, 0, 0)
-        layout.setAlignment(Qt.AlignLeft)
-
-        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        # Create a QLineEdit (text field) and set maximum width
-        text_field = QLineEdit(self)
-        text_field.setStyleSheet("font-size: 18px;")
-        text_field.setPlaceholderText("Enter text...")
-        text_field.setStyleSheet("QLineEdit { padding: 4px; border-radius: 8px; }")
-        text_field.setMaximumWidth(200)  # Set maximum width to 200 pixels
-        text_field.setFocusPolicy(Qt.ClickFocus)
-        text_field.setFixedSize(200, 36)
-
-        # Create a QPushButton (button) with background color and border radius
-        button = QPushButton("Submit", self)
-        button.setStyleSheet(
-            "font-size: 18px; border-radius: 12px; background-color: #CB1919; color: white;"
-        )
-        button.setFixedSize(110, 36)
-
-        layout.addItem(spacer)
-        layout.addWidget(button)
-        layout.addWidget(text_field)
-
-        self.setLayout(layout)
-class ClickableContainer(QFrame):
-    clicked = QtCore.pyqtSignal()
-
-    def mousePressEvent(self, event):
-        event.accept()
-
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton and self.rect().contains(event.pos()):
-            self.clicked.emit()  # Emit the clicked signal if the release event occurred within the container
-
-
-class CardItem(QFrame):
-    def __init__(self, title, subtitle, image_url):
-        super().__init__()
-
-        self.setObjectName("CardItem")
-        self.setStyleSheet(
-            """
-            #CardItem {
-                background-color: #FFFFFF;
-                border-radius: 15px;
-                border: 1px solid #f0f0f0;
-                padding: 8px;
-            }
-            """
-        )
-
-        self.setMouseTracking(True)  # Enable mouse tracking to receive hover events
+        self.tab1UI()
+        self.tab2UI()
+        self.tab3UI()
+        self.setWindowTitle("tab demo")
         
-        # Create a QVBoxLayout for the content inside the card item
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)  # Align items to the top
+        self.createMenuBar()
 
-        # Create a QLabel for the picture
-        picture_label = QLabel(self)
-        picture_label.setStyleSheet("background-color: #ffffff; border-radius: 4px;")
+    def createMenuBar(self):
+        bar = self.menuBar()
+        edit = bar.addMenu("Edit") 
+        activities = edit.addMenu("Activities")
+        editMode = QAction("Edit mode",self)
+        editMode.setData({'action':'editMode'})
+        activities.addAction(editMode)
+        saveEdit = QAction("Save",self)
+        saveEdit.setShortcut("Ctrl+S")
+        saveEdit.setData({'action':'saveEdit'})
+        activities.addAction(saveEdit)
+        edit.triggered[QAction].connect(self.processtrigger)
+        
+        
+        if(self.client['rolePrivilege'] > 0):
+            edit.setDisabled(False)
+        else:
+            edit.setDisabled(True)
+            
+    def processtrigger(self,q):
+        data = q.data()
+        if data['action'] == 'editMode':
+            self.edit = True
 
-        # Load the image
-        pixmap = QPixmap()
-        pixmap.loadFromData(requests.get(image_url).content)  # Assuming you have the `requests` library imported
+        elif data['action'] == 'saveEdit':
+            self.edit = False    
+        self.handleFlagChange(self.edit)
+        
+        # if flag:
+        #     # Recreate Tab 1 UI in edit mode
+        #     self.tab_widget.removeTab(0)
+        #     self.tab1UI(edit_mode=True)
+        # else:
+        #     # Recreate Tab 1 UI in view mode
+        #     self.tab_widget.removeTab(0)
+        #     self.tab1UI(edit_mode=False)
+         
+        
 
-        # Check if the pixmap height is non-zero
-        if pixmap.height() != 0:
-            # Calculate the desired height and width based on the desired height and aspect ratio
-            desired_height = 200
-            aspect_ratio = pixmap.width()  / pixmap.height()
-            desired_width = int(desired_height * aspect_ratio)
+    def tab1UI(self):
+        mainVbox = QVBoxLayout()
+        hbox = QHBoxLayout()
+        self.searchLineEdit = QLineEdit()
+        self.searchLineEdit.setPlaceholderText("🔎 Search programs")
+        self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
+        self.searchLineEdit.returnPressed.connect(self.handleSearchReturned)
+        
+        mainVbox.addWidget(self.searchLineEdit)
+        
+        self.leftlist = QListWidget()
+        for index, item in enumerate(self.programs):
+            listItem = QListWidgetItem()
+            listItem.setData(Qt.UserRole, item)
+            listItem.setText(f"{datetime.datetime.fromtimestamp(item['timestamp']).strftime('%d %b %y')} | {item['title']}")
+            self.leftlist.addItem(listItem)
+        self.leftlist.currentRowChanged.connect(self.display)
+        topright = QFrame()
+        topright.setFrameShape(QFrame.StyledPanel)
+        layout = QVBoxLayout(topright)
+        self.label = QLabel(topright)
+        self.label.setWordWrap(True)
+        self.label.setStyleSheet('QLabel{font-size:24px;font-weight:bold;}')
+        self.label2 = QLabel(topright) 
+        self.label2.setWordWrap(True)
+        self.label3 = QLabel(topright) 
 
-            # Scale the image to the desired size while maintaining the aspect ratio
-            scaled_pixmap = pixmap.scaled(
-                desired_width,
-                desired_height, 
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
+        self.label4 = QLabel(topright) 
+        self.label5 = QLabel(topright) 
+        self.label6 = QLabel(topright) 
+        self.label7 = QLabel(topright) 
+        
+        self.b1 = QPushButton(topright)
+        
+        layout.addWidget(self.label)
+        layout.addWidget(self.label2)
+        layout.addWidget(self.label3)
+        layout.addWidget(self.label4)
+        layout.addWidget(self.label5)
+        layout.addWidget(self.label6)
+        layout.addWidget(self.label7)
+        layout.addStretch()
+        
+        layout.addWidget(self.b1)
+        
+        splitter1 = QSplitter(Qt.Horizontal)
+        splitter1.addWidget(self.leftlist)
+        splitter1.addWidget(topright)
+        splitter1.setSizes([150, 500])
+        hbox.addWidget(splitter1)
+        mainVbox.addLayout(hbox)
+        self.tab1.setLayout(mainVbox)
+        
 
-            # Create a mask for the rounded rectangle
-            mask_bitmap = QBitmap(scaled_pixmap.size())
-            mask_bitmap.fill(Qt.color0)  # Fill the mask with transparent color
+        
+    def handleSearchChanged(self,text):
+       self.filterPrograms(text)
+        
+    def filterPrograms(self, text):
+        if text != '':
+            self.leftlist.clear()
 
-            # Create a QPainter and set the mask
-            painter = QPainter(mask_bitmap)
-            painter.setRenderHint(QPainter.Antialiasing, True)  # Enable anti-aliasing for smooth edges
+            for program in self.programs:
+                if isinstance(program, dict) and 'title' in program and isinstance(program['title'], str):
+                    if text.lower() in program['title'].lower():
+                        listItem = QListWidgetItem()
+                        listItem.setData(Qt.UserRole, program)
+                        listItem.setText(f"{datetime.datetime.fromtimestamp(program['timestamp']).strftime('%d %b %y')} | {program['title']}")
+                        self.leftlist.addItem(listItem)
 
-            # Create a QPainterPath for the rounded rectangle
-            rounded_rect = QPainterPath()
-            rounded_rect.addRoundedRect(
-                scaled_pixmap.rect().x(),
-                scaled_pixmap.rect().y(),
-                scaled_pixmap.rect().width(),
-                scaled_pixmap.rect().height(),
-                8,
-                8
-            )
-
-            # Draw the rounded rectangle on the mask
-            painter.setBrush(Qt.color1)  # Fill color1 (white) for the rounded rectangle
-            painter.setPen(Qt.NoPen)  # No outline
-            painter.drawPath(rounded_rect)
-
-            # Set the mask on the scaled pixmap
-            scaled_pixmap.setMask(mask_bitmap)
-
-            # Clean up the QPainter
-            painter.end()
-
-            # Set the scaled pixmap as the background image for the label
-            picture_label.setPixmap(scaled_pixmap)
-            picture_label.setScaledContents(True)  # Scale the image to fit the label
 
         else:
-            # Handle the case where the height is zero
-            # Display a placeholder image or show an error message
-            pass
-       
-        # Add the picture label to the card layout
-        layout.addWidget(picture_label)
-
-        # Create a QLabel for the title of the card
-        title_label = QLabel(title, self)
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        title_label.setWordWrap(True)  # Enable wrapping for long titles
-        title_label.setMaximumHeight(48)  # Limit the maximum height to show up to 3 lines
-
-        # Create a QLabel for the subtitle of the card
-        subtitle_label = QLabel(subtitle, self)
-        subtitle_label.setStyleSheet("font-size: 14px; color: #808080;")
-        subtitle_label.setWordWrap(True)  # Enable wrapping for long subtitles
-        subtitle_label.setFixedHeight(50)  # Limit the maximum height to show up to 3 lines
-        subtitle_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-
-        # Create a ClickableContainer for the "Enroll now" text
-        enroll_container = ClickableContainer(self)
-        enroll_container.setObjectName("EnrollContainer")
-        enroll_container.setStyleSheet(
-            """
-            #EnrollContainer {
-                background: qlineargradient(x1:0, y1:0, x2:2, y2:1, stop:0 #FFABAB, stop:1 #FFDA83);
-                border-radius: 7px;
-            }
+            self.leftlist.clear()
+            for index, item in enumerate(self.programs):
+                listItem = QListWidgetItem()
+                listItem.setData(Qt.UserRole, item)
+                listItem.setText(f"{datetime.datetime.fromtimestamp(item['timestamp']).strftime('%d %b %y')} | {item['title']}")
+                self.leftlist.addItem(listItem)
             
-            #EnrollContainer:hover {
-                background-color: #FFABAB;
-                border-radius: 7px;
-            }
-            """
-        )
-        enroll_container.clicked.connect(self.handleEnrollClicked)
+            
+    def handleSearchReturned(self):
+        if self.leftlist.count() > 0:
+            pid = self.leftlist.item(0).data(Qt.UserRole)['pid']
+            i = -1
+            for index, obj in enumerate(self.programs):
+                if isinstance(obj, dict) and 'pid' in obj and obj['pid'] == pid:
+                    i = index
+                    
+            if(i>=0):
+                self.display(i)
+
+         
         
-        # Create a QLabel for the "Enroll now" text
-        enroll_label = QLabel("Enroll now", enroll_container)
-        enroll_label.setObjectName("EnrollLabel")
-        enroll_label.setStyleSheet(
-            """
-            #EnrollLabel {
-                font-size: 16px;
-                color: white;
-                font-weight: bold;
-                padding: 4px;
-            }
-            """
-        )
-        enroll_label.setAlignment(Qt.AlignCenter)
-
-        # Add the enroll label to the enroll container
-        enroll_container_layout = QVBoxLayout()
-        enroll_container_layout.addWidget(enroll_label)
-        enroll_container.setLayout(enroll_container_layout)
-
-        # Add the picture placeholder, title, subtitle, and enroll container to the card layout
-        layout.addWidget(title_label)
-        layout.addWidget(subtitle_label)
-        layout.addWidget(enroll_container)
-
-        # Set the layout for the card frame
-        self.setLayout(layout)
+    def display(self, i):
+        self.label.setText(f"{self.programs[i]['title']}")
+        self.label2.setText(f"{self.programs[i]['description']}")
+        image = QImage()
+        image.loadFromData(requests.get(self.programs[i]['imageUrl']).content)
+        scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
+        self.label3.setPixmap(QPixmap(scaledImage))
+        self.label4.setText(f"📍 {self.programs[i]['venue']}")
+        self.label5.setText(f"🕒 {datetime.datetime.fromtimestamp(self.programs[i]['timestamp']).strftime('%d %B %Y %H:%M')}")
+        enrolStatus ='⚫️ Unknown'
+        enrolButton = {'text':'Unvailable', 'style':''}
         
-    def handleEnrollClicked(self):
-        enroll_window = EnrollWindow()
-        enroll_window.exec_()
+        if self.programs[i]['enrollStatusCode'] == 0:
+            enrolStatus = '🟩 Available'
+            enrolButton ={'text':'Enroll now', 'style':'color: white; background-color: #047DD9'} 
+        elif self.programs[i]['enrollStatusCode'] == 1:
+            enrolStatus = '🟨 Pending verification'
+            enrolButton ={'text':'Cancel enrollment', 'style':'color: white; background-color: #D9D8D4'} 
+        elif self.programs[i]['enrollStatusCode'] == 2:
+            enrolStatus = '🟦 Enrolled'
+            enrolButton ={'text':'Cancel enrollment', 'style':'color: white; background-color: #D9D8D4'} 
 
-        print("Enroll now clicked!")
-
-
-
-class ScrollableContentWidget(QWidget):
-    def __init__(self, data):
-        super().__init__()
-
-        # Create a vertical layout for the scrollable content
-        layout = QVBoxLayout()
-
-        # Create a QLabel for the "Enrolled" label
-        enrolled_label = QLabel("Available", self)
-        enrolled_label.setStyleSheet(
-            "font-weight: bold; font-size: 24px; color: #c0c0c0;"
-        )
-        enrolled_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-
-        layout.addWidget(enrolled_label)
-
-        # Create a QGridLayout to hold the card-like items
-        self.cards_layout = QGridLayout()
-        self.cards_layout.setAlignment(Qt.AlignTop)
-        self.cards_layout.setSpacing(10)  # Adjust spacing as needed
-
-        # Add card-like items to the layout
-        self.cards = []
-        for i, item_data in enumerate(data):
-            
-            
-            try:
-                title=item_data['title']
-            except (KeyError, TypeError):
-                title = '<Undefined>'
-            
-            try:
-                subtitle = item_data['subtitle']
-            except (KeyError, TypeError):
-                subtitle = 'There is no information about this event'
-            
-            try:
-                image_url = item_data['thumbnail_url']
-            except (KeyError, TypeError):
-                image_url = 'https://static-prod.adweek.com/wp-content/uploads/2018/06/Events.jpg.webp'
-
-            # Create a CardItem with sample data
-            card = CardItem(
-                title=title,
-                subtitle=subtitle,
-                image_url= image_url)
-            
-            self.cards.append(card)
-
-            # Add the card to the grid layout at the initial position
-            self.cards_layout.addWidget(card, i // 4, i % 4)
-
-        # Create a QWidget to hold the grid layout
-        cards_container = QWidget()
-        cards_container.setLayout(self.cards_layout)
-
-        # Create a QScrollArea to make the content scrollable
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(cards_container)
-
-        # Set the frame shape of the scroll area widget to NoFrame
-        scroll_area.setFrameShape(QFrame.NoFrame)
-
-        layout.addWidget(scroll_area)
-
-        self.setLayout(layout)
-        
-    def resizeEvent(self, event):
-        # Calculate the new number of cards per row based on the program window width
-        card_width = 200  # Adjust this value to fit your card width
-        spacing = 10  # Adjust spacing as needed
-        window_width = self.width() - 400
-        num_cards_per_row = max(1, (window_width - spacing) // (card_width + spacing))
-
-        # Update the cards layout
-        for i, card in enumerate(self.cards):
-            row = i // num_cards_per_row
-            col = i % num_cards_per_row
-            self.cards_layout.addWidget(card, row, col)
-
-        super().resizeEvent(event)
-
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        # Create a palette with the desired background color
-        palette = self.palette()
-        palette.setColor(QPalette.Background, QColor("#FFFFFF"))  # Replace #FFFFFF with your desired color
-
-        # Set the window title and size
-        self.setWindowTitle("Program Enrollments")
-        # self.resize(800, 600)
-
-        # Create a central widget for the main window
-        central_widget = QWidget(self)
-
-        # Create a vertical layout for the central widget
-        layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)  # Set margins to add spacing
-
-        # Create and add the LabelsWidget to the layout
-        labels_widget = LabelsWidget()
-        layout.addWidget(labels_widget)
-
-        # Create and add the InputWidget to the layout
-        input_widget = InputWidget()
-        layout.addWidget(input_widget)
-
-        # Create and add the ScrollableContentWidget to the layout
-        scrollable_widget = ScrollableContentWidget(data=[
-            {'title': 'Title 1', 'subtitle': 'Subtitle 1','thumbnail_url':'https://blog.vantagecircle.com/content/images/2019/06/company-event.png'},
-            { },
-            {'title': 'Title 3', 'subtitle': 'Subtitle 3'},
-            {'title': 'Title 4', 'subtitle': 'Subtitle 4'},
           
-        ])
-        layout.addWidget(scrollable_widget)
+        else:
+          pass 
+        self.label6.setText(enrolStatus)
+        self.label7.setText(f"🫂 {len(self.programs[i]['participances'])}")
+        self.b1.setText(f"{enrolButton['text']}") 
+        self.b1.setStyleSheet(f"{enrolButton['style']}")
 
-        central_widget.setLayout(layout)
-
-        self.setCentralWidget(central_widget)
-
-if __name__ == "__main__":
+        
+    def tab2UI(self):
+       layout = QFormLayout()
+       sex = QHBoxLayout()
+       sex.addWidget(QRadioButton("Male"))
+       sex.addWidget(QRadioButton("Female"))
+       layout.addRow(QLabel("Sex"),sex)
+       layout.addRow("Date of Birth",QLineEdit())
+       self.tab2.setLayout(layout)
+    def tab3UI(self):
+       layout = QHBoxLayout()
+       layout.addWidget(QLabel("subjects"))
+       layout.addWidget(QCheckBox("Physics"))
+       layout.addWidget(QCheckBox("Maths"))
+       self.tab3.setLayout(layout)
+def main():
     app = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
+    ex = MainWindow()
+    ex.show()
     sys.exit(app.exec_())
+if __name__ == '__main__':
+    main()
