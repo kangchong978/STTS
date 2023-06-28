@@ -32,7 +32,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabWidget.addTab(self.tab3, "Details")
         self.tabWidget.addTab(self.tab4, "Approvals")
         self.tabWidget.addTab(self.tab5, "Account")
-        self.tabWidget.addTab(self.tab3, "Users")
+        self.tabWidget.addTab(self.tab6, "Users")
         # self.tabWidget.addTab(self.tab3, "Notifications")
 
 
