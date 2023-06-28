@@ -1,8 +1,10 @@
 from PyQt5 import QtWidgets, QtCore
-from accountTab import AccountTab
-from approvalTab import ApprovalTab
 from programsTab import ProgramsTab
+from addProgramTab import AddProgramTab
 from detailsTab import DetailsTab 
+from approvalTab import ApprovalTab
+from accountTab import AccountTab
+from userTab import UserTab
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -17,11 +19,11 @@ class MainWindow(QtWidgets.QMainWindow):
         
         
         self.tab1 = ProgramsTab()
-        # self.tab2 = AddProgramTab()
+        self.tab2 = AddProgramTab()
         self.tab3 = DetailsTab()
         self.tab4 = ApprovalTab()
         self.tab5 = AccountTab()
-        # self.tab6 = UserTab()
+        self.tab6 = UserTab()
         # self.tab7 = NotificationTab()
         
         self.tabWidget.addTab(self.tab1, "Programs")
