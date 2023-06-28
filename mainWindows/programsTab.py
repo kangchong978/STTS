@@ -114,11 +114,12 @@ class ProgramsTab(QWidget):
         if self.programsListWidget.count() > 0 and index >= 0:
             pid = self.programsListWidget.item(index).data(Qt.UserRole)['pid']
             i = -1
-            for index, obj in enumerate(self.programsData):
+            for x, obj in enumerate(self.programsData):
                 if isinstance(obj, dict) and 'pid' in obj and obj['pid'] == pid:
-                    i = index
+                    i = x
                     
             if(i>=0):
+                self.programsListWidget.setCurrentRow(index)
                 self.updateDisplayInformationView(i)
                 
     def updateDisplayProgramsList(self, data):
