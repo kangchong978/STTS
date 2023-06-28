@@ -5,7 +5,7 @@
             "title": "this is title",
             "description": "this is a long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long description",
             "imageUrl": "https://img.freepik.com/free-psd/banner-template-concert_23-2148403186.jpg",
-            "venue": "this is venue",
+            "location": "this is venue",
             "timestamp": 1687661804,
             "enrollStatusCode": 0,
             "participances": [
@@ -22,7 +22,7 @@
             "title": "H20 Charity",
             "description": "This event is host for fund",
             "imageUrl": "https://www.salesforce.org/wp-content/uploads/2017/01/charity-water.png?w=532",
-            "venue": "Longkang",
+            "location": "Longkang",
             "timestamp": 1687661804,
             "enrollStatusCode": 2,
             "participances": [

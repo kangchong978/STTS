@@ -1,12 +1,13 @@
+import sys
+from mainWindows.accountTab import AccountTab
+from mainWindows.addProgramTab import AddProgramTab
+from mainWindows.approvalTab import ApprovalTab
+from mainWindows.detailsTab import DetailsTab
+from mainWindows.programsTab import ProgramsTab
+from mainWindows.userTab import UserTab
+
 from PyQt5 import QtWidgets, QtCore
-from programsTab import ProgramsTab
-from addProgramTab import AddProgramTab
-from detailsTab import DetailsTab 
-from approvalTab import ApprovalTab
-from accountTab import AccountTab
-from userTab import UserTab
-
-
+ 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -27,11 +28,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.tab7 = NotificationTab()
         
         self.tabWidget.addTab(self.tab1, "Programs")
-        # self.tabWidget.addTab(self.tab2, "Add Programs")
+        self.tabWidget.addTab(self.tab2, "Add Programs")
         self.tabWidget.addTab(self.tab3, "Details")
         self.tabWidget.addTab(self.tab4, "Approvals")
         self.tabWidget.addTab(self.tab5, "Account")
-        # self.tabWidget.addTab(self.tab3, "Users")
+        self.tabWidget.addTab(self.tab3, "Users")
         # self.tabWidget.addTab(self.tab3, "Notifications")
 
 
