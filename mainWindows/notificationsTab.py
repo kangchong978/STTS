@@ -27,3 +27,6 @@ class NotificationsTab(QtWidgets.QWidget):
         self.listView = QtWidgets.QListView(self)
         self.listView.setObjectName("listView")
         self.verticalLayout_8.addWidget(self.listView)
+
+        self.pushButton_71.setText("Show")
+        self.label_89.setText("Messages")

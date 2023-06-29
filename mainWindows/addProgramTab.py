@@ -93,3 +93,16 @@ class AddProgramTab(QtWidgets.QWidget):
         self.gridLayout_2.addLayout(self.horizontalLayout_22, 7, 0, 1, 1)
         self.verticalLayout_33.addLayout(self.gridLayout_2)
         self.horizontalLayout_19.addWidget(self.widget_11)
+
+        # Text
+        self.pushButton_29.setText("Add Image")
+        self.pushButton_12.setText("Remove")
+        self.pushButton_11.setText("Add")
+        self.label_102.setText("Department")
+        self.label_103.setText("Participants")
+        self.checkBox_22.setText("Select All")
+        self.pushButton_88.setText("Remove")
+        self.checkBox_8.setText("Username")
+        self.pushButton_10.setText("Save")
+        self.lineEdit_3.setPlaceholderText("Search")
+        
