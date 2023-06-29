@@ -1,75 +1,94 @@
+import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+sys.path.append("client")
+from client import Client
 
 class DetailsTab(QtWidgets.QWidget):
     def __init__(self):
         super(DetailsTab, self).__init__()
-        
-        self.setObjectName("detailsTab")
-        self.lineEdit_3 = QtWidgets.QLineEdit(self)
-        self.lineEdit_3.setGeometry(QtCore.QRect(10, 20, 255, 31))
-        self.lineEdit_3.setObjectName("lineEdit_3")
-        self.frame_2 = QtWidgets.QFrame(self)
-        self.frame_2.setGeometry(QtCore.QRect(280, 20, 501, 481))
-        self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_2.setObjectName("frame_2")
-        self.graphicsView_9 = QtWidgets.QGraphicsView(self.frame_2)
-        self.graphicsView_9.setGeometry(QtCore.QRect(20, 50, 461, 192))
-        self.graphicsView_9.setObjectName("graphicsView_9")
-        self.pushButton_10 = QtWidgets.QPushButton(self.frame_2)
-        self.pushButton_10.setEnabled(True)
-        self.pushButton_10.setGeometry(QtCore.QRect(170, 440, 131, 32))
-        self.pushButton_10.setObjectName("pushButton_10")
-        self.textEdit = QtWidgets.QTextEdit(self.frame_2)
-        self.textEdit.setGeometry(QtCore.QRect(20, 10, 191, 31))
-        self.textEdit.setObjectName("textEdit")
-        self.pushButton_13 = QtWidgets.QPushButton(self.frame_2)
-        self.pushButton_13.setGeometry(QtCore.QRect(200, 130, 100, 31))
-        self.pushButton_13.setObjectName("pushButton_13")
-        self.textEdit_3 = QtWidgets.QTextEdit(self.frame_2)
-        self.textEdit_3.setGeometry(QtCore.QRect(20, 330, 191, 31))
-        self.textEdit_3.setObjectName("textEdit_3")
-        self.dateTimeEdit = QtWidgets.QDateTimeEdit(self.frame_2)
-        self.dateTimeEdit.setGeometry(QtCore.QRect(20, 290, 194, 22))
-        self.dateTimeEdit.setObjectName("dateTimeEdit")
-        self.textEdit_2 = QtWidgets.QTextEdit(self.frame_2)
-        self.textEdit_2.setGeometry(QtCore.QRect(20, 250, 461, 31))
-        self.textEdit_2.setObjectName("textEdit_2")
-        self.label_90 = QtWidgets.QLabel(self.frame_2)
-        self.label_90.setGeometry(QtCore.QRect(270, 290, 81, 16))
-        self.label_90.setObjectName("label_90")
-        self.checkBox_4 = QtWidgets.QCheckBox(self.frame_2)
-        self.checkBox_4.setGeometry(QtCore.QRect(270, 310, 85, 20))
-        self.checkBox_4.setObjectName("checkBox_4")
-        self.checkBox_5 = QtWidgets.QCheckBox(self.frame_2)
-        self.checkBox_5.setGeometry(QtCore.QRect(270, 330, 85, 20))
-        self.checkBox_5.setObjectName("checkBox_5")
-        self.label_91 = QtWidgets.QLabel(self.frame_2)
-        self.label_91.setGeometry(QtCore.QRect(20, 370, 81, 16))
-        self.label_91.setObjectName("label_91")
-        self.listWidget_24 = QtWidgets.QListWidget(self.frame_2)
-        self.listWidget_24.setGeometry(QtCore.QRect(20, 390, 461, 51))
-        self.listWidget_24.setObjectName("listWidget_24")
-        self.checkBox_8 = QtWidgets.QCheckBox(self.frame_2)
-        self.checkBox_8.setGeometry(QtCore.QRect(40, 410, 85, 20))
-        self.checkBox_8.setObjectName("checkBox_8")
-        self.checkBox_9 = QtWidgets.QCheckBox(self.frame_2)
-        self.checkBox_9.setGeometry(QtCore.QRect(150, 410, 85, 20))
-        self.checkBox_9.setObjectName("checkBox_9")
-        self.checkBox_10 = QtWidgets.QCheckBox(self.frame_2)
-        self.checkBox_10.setGeometry(QtCore.QRect(110, 370, 85, 20))
-        self.checkBox_10.setObjectName("checkBox_10")
-        self.pushButton_72 = QtWidgets.QPushButton(self.frame_2)
-        self.pushButton_72.setGeometry(QtCore.QRect(380, 360, 100, 31))
-        self.pushButton_72.setObjectName("pushButton_72")
-        self.listWidget_2 = QtWidgets.QListWidget(self)
-        self.listWidget_2.setGeometry(QtCore.QRect(10, 60, 255, 411))
-        self.listWidget_2.setObjectName("listWidget_2")
-        self.pushButton_11 = QtWidgets.QPushButton(self)
-        self.pushButton_11.setGeometry(QtCore.QRect(10, 470, 100, 31))
-        self.pushButton_11.setObjectName("pushButton_11")
-        self.pushButton_12 = QtWidgets.QPushButton(self)
-        self.pushButton_12.setGeometry(QtCore.QRect(165, 470, 100, 31))
-        self.pushButton_12.setObjectName("pushButton_12")
 
-         
+        self.programsData = Client.getPrograms()
+
+        self.setObjectName("detailsTab")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.filterLineEdit = QtWidgets.QLineEdit(self)
+        self.filterLineEdit.setObjectName("filterLineEdit")
+        self.horizontalLayout_3.addWidget(self.filterLineEdit)
+        self.frame_3 = QtWidgets.QFrame(self)
+        self.frame_3.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_3.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_3.setObjectName("frame_3")
+        self.horizontalLayout_3.addWidget(self.frame_3)
+        self.horizontalLayout_3.setStretch(0, 1)
+        self.horizontalLayout_3.setStretch(1, 2)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.verticalLayout_2.addLayout(self.verticalLayout_3)
+        self.listView = QtWidgets.QListWidget(self)
+        self.listView.setObjectName("listView")
+        self.verticalLayout_3.addWidget(self.listView)
+        self.listView.setStyleSheet("QListWidget { background-color: transparent; }")
+
+        self.populate_list()
+
+    def populate_list(self):
+        data = self.programsData
+
+        for itemData in data:
+            widget = self.createWidget(itemData)
+            item = QtWidgets.QListWidgetItem()
+            item.setSizeHint(widget.sizeHint())
+            self.listView.addItem(item)
+            self.listView.setItemWidget(item, widget)
+
+    def createWidget(self, item):
+        widget = QtWidgets.QWidget()
+        widget.setObjectName("widget")
+        widget.setMaximumHeight(50) 
+        horizontalLayout = QtWidgets.QHBoxLayout(widget)
+        horizontalLayout.setObjectName("horizontalLayout")
+        statusLabel = QtWidgets.QLabel(widget)
+        statusLabel.setObjectName("statusLabel")
+        statusText = "Unknown"
+        if 'enrollStatusCode' in item and isinstance(item['enrollStatusCode'], int) and item['enrollStatusCode'] != None:
+            if(item['enrollStatusCode'] == 0):
+                statusText = "Enrolled"
+            elif(item['enrollStatusCode'] == 1):
+                statusText = "Pending Approve"
+            elif(item['enrollStatusCode'] == 2):
+                statusText = "Approved"
+            elif(item['enrollStatusCode'] == 3):
+                statusText = "Cancelled"
+                
+        statusLabel.setText(statusText)
+        statusLabel.setFixedWidth(100)
+        horizontalLayout.addWidget(statusLabel)
+        titleLabel = QtWidgets.QLabel(widget)
+        titleLabel.setObjectName("titleLabel")
+        title = 'Unknown'
+        if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
+                    title = item['title']
+        titleLabel.setText(title)
+        titleLabel.setWordWrap(True)
+        horizontalLayout.addWidget(titleLabel)
+        
+        button = QtWidgets.QPushButton(widget)
+        button.setObjectName("button")
+        button.setText("View")
+        button.setFixedWidth(80)
+        horizontalLayout.addWidget(button)
+
+        return widget
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+
+    detailsTab = DetailsTab()
+    detailsTab.show()
+
+    sys.exit(app.exec_())
