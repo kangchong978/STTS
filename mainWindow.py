@@ -21,7 +21,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.tab1 = ProgramsTab()
         self.tab2 = AddProgramTab()
-        self.tab3 = DetailsTab()
+        # self.tab3 = DetailsTab()
         self.tab4 = ApprovalTab()
         self.tab5 = AccountTab()
         self.tab6 = UserTab()
@@ -29,7 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.tabWidget.addTab(self.tab1, "Programs")
         self.tabWidget.addTab(self.tab2, "Add Programs")
-        self.tabWidget.addTab(self.tab3, "Details")
+        # self.tabWidget.addTab(self.tab3, "Details")
         self.tabWidget.addTab(self.tab4, "Approvals")
         self.tabWidget.addTab(self.tab5, "Account")
         self.tabWidget.addTab(self.tab6, "Users")
