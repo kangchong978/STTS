@@ -95,3 +95,32 @@ class Client:
             return True
         else:
             return False
+        
+    @staticmethod
+    def updateApproval(approvalData):
+        print(f"{approvalData}")
+        query = "UPDATE approval SET approveStatus = %s WHERE id = %s"
+        values = (approvalData['approveStatus'], approvalData['id'])
+
+        cursor.execute(query, values)
+        connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def insertUser(userData):
+        query = "INSERT INTO users (id, username, departmentId) VALUES (%s, %s, %s)"
+        values = (userData['id'], userData['username'], userData['departmentId'])
+
+        cursor.execute(query, values)
+        connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+
+ 
