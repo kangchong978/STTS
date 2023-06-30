@@ -1,108 +1,365 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-
-class AddProgramTab(QtWidgets.QWidget):
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+import requests
+import sys
+sys.path.append("client")
+from client import Client
+class AddProgramTab(QWidget):
     def __init__(self):
         super(AddProgramTab, self).__init__()
 
+        self.programsData = Client.getPrograms()
+        self.suggestionFontSizes = ["8", "10", "13", "16", "24", "32"]
+        self.departments = ["Department 1", "Department 2", "Department 3", "Department 4"]
+        self.enrolledUsers = ["a 1", "b 2", "c 3", "d 4"]
+        
+
         self.setObjectName("AddProgramTab")
-        self.horizontalLayout_19 = QtWidgets.QHBoxLayout(self)
+        self.horizontalLayout_19 = QHBoxLayout(self)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
-        self.widget_8 = QtWidgets.QWidget(self)
+    
+
+        self.widget_8 = QWidget(self)
         self.widget_8.setObjectName("widget_8")
-        self.verticalLayout_32 = QtWidgets.QVBoxLayout(self.widget_8)
+        self.widget_8.setMaximumWidth(250)
+        self.verticalLayout_32 = QVBoxLayout(self.widget_8)
         self.verticalLayout_32.setObjectName("verticalLayout_32")
-        self.lineEdit_3 = QtWidgets.QLineEdit(self.widget_8)
-        self.lineEdit_3.setObjectName("lineEdit_3")
-        self.verticalLayout_32.addWidget(self.lineEdit_3)
-        self.listWidget_2 = QtWidgets.QListWidget(self.widget_8)
-        self.listWidget_2.setObjectName("listWidget_2")
-        self.verticalLayout_32.addWidget(self.listWidget_2)
-        self.pushButton_12 = QtWidgets.QPushButton(self.widget_8)
-        self.pushButton_12.setObjectName("pushButton_12")
-        self.verticalLayout_32.addWidget(self.pushButton_12)
-        self.pushButton_11 = QtWidgets.QPushButton(self.widget_8)
-        self.pushButton_11.setObjectName("pushButton_11")
-        self.verticalLayout_32.addWidget(self.pushButton_11)
+        self.searchLineEdit = QLineEdit(self.widget_8)
+        self.searchLineEdit.setObjectName("searchLineEdit")
+        self.verticalLayout_32.addWidget(self.searchLineEdit)
+        self.programsListWidget = QListWidget(self.widget_8)
+        self.programsListWidget.setObjectName("programsListWidget")
+        self.verticalLayout_32.addWidget(self.programsListWidget)
+        self.horizontalLayout_32 = QHBoxLayout(self.widget_8)
+        self.removeProgramsButton = QPushButton(self.widget_8)
+        self.removeProgramsButton.setObjectName("removeProgramsButton")
+        self.horizontalLayout_32.addWidget(self.removeProgramsButton)
+        self.addProgramsButton = QPushButton(self.widget_8)
+        self.addProgramsButton.setObjectName("addProgramsButton")
+        self.horizontalLayout_32.addWidget(self.addProgramsButton)
+        self.verticalLayout_32.addLayout(self.horizontalLayout_32)
         self.horizontalLayout_19.addWidget(self.widget_8)
-        self.widget_11 = QtWidgets.QWidget(self)
+        self.widget_11 = QWidget(self)
         self.widget_11.setObjectName("widget_11")
-        self.verticalLayout_33 = QtWidgets.QVBoxLayout(self.widget_11)
-        self.verticalLayout_33.setSizeConstraint(QtWidgets.QLayout.SetMaximumSize)
+        self.verticalLayout_33 = QVBoxLayout(self.widget_11)
+        self.verticalLayout_33.setSizeConstraint(QLayout.SetMaximumSize)
         self.verticalLayout_33.setObjectName("verticalLayout_33")
-        self.gridLayout_2 = QtWidgets.QGridLayout()
+        self.gridLayout_2 = QVBoxLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.lineEdit_11 = QtWidgets.QLineEdit(self.widget_11)
-        self.lineEdit_11.setObjectName("lineEdit_11")
-        self.gridLayout_2.addWidget(self.lineEdit_11, 0, 0, 1, 1)
-        self.graphicsView_12 = QtWidgets.QGraphicsView(self.widget_11)
+        self.titleLineText = QLineEdit(self.widget_11)
+        self.titleLineText.setObjectName("titleLineText")
+        self.gridLayout_2.addWidget(self.titleLineText)
+        self.graphicsView_12 =QLabel(self.widget_11)
         self.graphicsView_12.setObjectName("graphicsView_12")
-        self.gridLayout_2.addWidget(self.graphicsView_12, 1, 0, 1, 1)
-        self.pushButton_10 = QtWidgets.QPushButton(self.widget_11)
+        # self.graphicsView_12.setFixedHeight(250)
+        self.gridLayout_2.addWidget(self.graphicsView_12 )
+        self.uploadPushButton = QPushButton(self.widget_11)
+        self.uploadPushButton.setObjectName("uploadPushButton")
+        self.uploadPushButton.setFixedWidth(150)
+        self.gridLayout_2.addWidget(self.uploadPushButton )
+        
+        self.verticalLayout_34 = QVBoxLayout()
+        self.toolbar = QToolBar()
+        self.fontComboBox = QFontComboBox()
+        self.toolbar.addWidget(self.fontComboBox)
+
+        self.fontSizeComboBox = QComboBox()
+        self.fontSizeComboBox.setEditable(True)
+        self.toolbar.addWidget(self.fontSizeComboBox)
+
+        self.boldAction = QAction("Bold", self)
+        self.toolbar.addAction(self.boldAction)
+
+        self.italicAction = QAction("Italic", self)
+        self.toolbar.addAction(self.italicAction)
+        
+        self.underlineAction = QAction("Underline", self)
+        self.toolbar.addAction(self.underlineAction)
+        self.bulletAction = QAction("Bullets", self)
+        self.toolbar.addAction(self.bulletAction)
+        self.linkAction = QAction("Link", self)
+        self.toolbar.addAction(self.linkAction)
+        self.leftAlignAction = QAction("Left Align", self)
+        self.toolbar.addAction(self.leftAlignAction)
+        self.centerAlignAction = QAction("Center Align", self)
+        self.toolbar.addAction(self.centerAlignAction)
+        self.rightAlignAction = QAction("Right Align", self)
+        self.toolbar.addAction(self.rightAlignAction)       
+        self.colorAction = QAction("Text Color", self)
+        self.toolbar.addAction(self.colorAction)
+
+        self.verticalLayout_34.addWidget(self.toolbar)
+        self.subtitleLineText = QTextEdit(self.widget_11)
+        self.subtitleLineText.setObjectName("subtitleLineText")
+        self.subtitleLineText.setFixedHeight(250)
+        self.verticalLayout_34.addWidget(self.subtitleLineText)
+        self.verticalLayout_34.setSpacing(0)
+        self.gridLayout_2.addLayout(self.verticalLayout_34 )
+        self.dateTimeEdit = QDateTimeEdit(self.widget_11)
+        self.dateTimeEdit.setObjectName("dateTimeEdit_4")
+        self.gridLayout_2.addWidget(self.dateTimeEdit )
+        self.locationLineText = QLineEdit(self.widget_11)
+        self.locationLineText.setObjectName("locationLineText")
+        self.gridLayout_2.addWidget(self.locationLineText )
+        # Create a QScrollArea
+        scrollArea = QScrollArea(self.widget_11)
+        scrollArea.setWidgetResizable(True)
+        scrollContent = QWidget(scrollArea)
+        scrollArea.setWidget(scrollContent)
+        scrollLayout = QVBoxLayout(scrollContent)
+        scrollLayout.setObjectName("scrollLayout")
+        scrollLayout.addLayout(self.gridLayout_2)
+        self.verticalLayout_33.addWidget(scrollArea)
+        self.horizontalLayout_19.addWidget(self.widget_11)
+        self.pushButton_10 = QPushButton(self.widget_11)
         self.pushButton_10.setEnabled(True)
         self.pushButton_10.setObjectName("pushButton_10")
-        self.gridLayout_2.addWidget(self.pushButton_10, 9, 0, 1, 1)
-        self.lineEdit_12 = QtWidgets.QLineEdit(self.widget_11)
-        self.lineEdit_12.setObjectName("lineEdit_12")
-        self.gridLayout_2.addWidget(self.lineEdit_12, 2, 0, 1, 1)
-        self.horizontalLayout_23 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_23.setObjectName("horizontalLayout_23")
-        self.listWidget_24 = QtWidgets.QListWidget(self.widget_11)
-        self.listWidget_24.setObjectName("listWidget_24")
-        self.horizontalLayout_23.addWidget(self.listWidget_24)
-        self.checkBox_9 = QtWidgets.QCheckBox(self.widget_11)
-        self.checkBox_9.setObjectName("checkBox_9")
-        self.horizontalLayout_23.addWidget(self.checkBox_9)
-        self.checkBox_8 = QtWidgets.QCheckBox(self.widget_11)
-        self.checkBox_8.setObjectName("checkBox_8")
-        self.horizontalLayout_23.addWidget(self.checkBox_8)
-        self.gridLayout_2.addLayout(self.horizontalLayout_23, 8, 0, 1, 1)
-        self.frame_16 = QtWidgets.QFrame(self.widget_11)
-        self.frame_16.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_16.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_16.setObjectName("frame_16")
-        self.gridLayout_2.addWidget(self.frame_16, 10, 0, 1, 1)
-        self.dateTimeEdit_4 = QtWidgets.QDateTimeEdit(self.widget_11)
-        self.dateTimeEdit_4.setObjectName("dateTimeEdit_4")
-        self.gridLayout_2.addWidget(self.dateTimeEdit_4, 4, 0, 1, 1)
-        self.lineEdit_13 = QtWidgets.QLineEdit(self.widget_11)
-        self.lineEdit_13.setObjectName("lineEdit_13")
-        self.gridLayout_2.addWidget(self.lineEdit_13, 5, 0, 1, 1)
-        self.pushButton_29 = QtWidgets.QPushButton(self.widget_11)
-        self.pushButton_29.setObjectName("pushButton_29")
-        self.gridLayout_2.addWidget(self.pushButton_29, 3, 0, 1, 1)
-        self.horizontalLayout_21 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_21.setObjectName("horizontalLayout_21")
-        self.label_102 = QtWidgets.QLabel(self.widget_11)
-        self.label_102.setObjectName("label_102")
-        self.horizontalLayout_21.addWidget(self.label_102)
-        self.listView_5 = QtWidgets.QListView(self.widget_11)
-        self.listView_5.setObjectName("listView_5")
-        self.horizontalLayout_21.addWidget(self.listView_5)
-        self.gridLayout_2.addLayout(self.horizontalLayout_21, 6, 0, 1, 1)
-        self.horizontalLayout_22 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_22.setObjectName("horizontalLayout_22")
-        self.label_103 = QtWidgets.QLabel(self.widget_11)
-        self.label_103.setObjectName("label_103")
-        self.horizontalLayout_22.addWidget(self.label_103)
-        self.checkBox_22 = QtWidgets.QCheckBox(self.widget_11)
-        self.checkBox_22.setObjectName("checkBox_22")
-        self.horizontalLayout_22.addWidget(self.checkBox_22)
-        self.pushButton_88 = QtWidgets.QPushButton(self.widget_11)
-        self.pushButton_88.setObjectName("pushButton_88")
-        self.horizontalLayout_22.addWidget(self.pushButton_88)
-        self.gridLayout_2.addLayout(self.horizontalLayout_22, 7, 0, 1, 1)
-        self.verticalLayout_33.addLayout(self.gridLayout_2)
-        self.horizontalLayout_19.addWidget(self.widget_11)
+        self.verticalLayout_33.addWidget(self.pushButton_10)
 
-        # Text
-        self.pushButton_29.setText("Add Image")
-        self.pushButton_12.setText("Remove")
-        self.pushButton_11.setText("Add")
+        self.horizontalLayout_23 = QHBoxLayout()
+        self.horizontalLayout_23.setObjectName("horizontalLayout_23")
+        # participants
+        self.verticalLayout_113 = QVBoxLayout()
+        self.verticalLayout_113.setObjectName("verticalLayout_113")
+        self.label_103 = QLabel(self.widget_11)
+        self.label_103.setObjectName("label_103")
+        self.verticalLayout_113.addWidget(self.label_103)
+        self.listWidget_24 = QListView(self.widget_11)
+        self.listWidget_24.setObjectName("listWidget_24")
+        self.verticalLayout_113.addWidget(self.listWidget_24)
+        self.horizontalLayout_23.addLayout(self.verticalLayout_113)
+        # # department
+        self.verticalLayout_114 = QVBoxLayout()
+        self.verticalLayout_114.setObjectName("verticalLayout_114")
+        self.label_102 = QLabel(self.widget_11)
+        self.label_102.setObjectName("label_103")
+        self.verticalLayout_114.addWidget(self.label_102)
+        self.listView_5 = QListView(self.widget_11)
+        self.listView_5.setObjectName("listView_5")
+        self.verticalLayout_114.addWidget(self.listView_5)
+        self.horizontalLayout_23.addLayout(self.verticalLayout_114)
+        self.gridLayout_2.addLayout(self.horizontalLayout_23 )
+        # self.gridLayout_2.setStretch(3, 1)
+        
+        self.uploadPushButton.setText("Upload Image")
+        self.removeProgramsButton.setText("Remove")
+        self.addProgramsButton.setText("Add")
         self.label_102.setText("Department")
         self.label_103.setText("Participants")
-        self.checkBox_22.setText("Select All")
-        self.pushButton_88.setText("Remove")
-        self.checkBox_8.setText("Username")
         self.pushButton_10.setText("Save")
-        self.lineEdit_3.setPlaceholderText("Search")
+        self.searchLineEdit.setPlaceholderText("Search")
+        self.titleLineText.setPlaceholderText("Input program`s title here ...")
+        self.subtitleLineText.setPlaceholderText("Input program`s discription here ...")
+        self.subtitleLineText.setAcceptRichText(True) 
+        self.locationLineText.setPlaceholderText("Input program`s location here ...")
+        self.fontSizeComboBox.addItems(self.suggestionFontSizes)
+        self.fontSizeComboBox.setCurrentText("13")
+
+        self.updateDisplayProgramsList(self.programsData)
+        self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
+        self.programsListWidget.currentRowChanged.connect(self.handleSearchReturned)
+        self.fontComboBox.currentFontChanged.connect(self.handleFontChanged)
+        self.fontSizeComboBox.currentTextChanged.connect(self.handleFontSizeChanged)
+        self.boldAction.triggered.connect(self.handleBoldAction)
+        self.italicAction.triggered.connect(self.handleItalicAction)
+        self.underlineAction.triggered.connect(self.handleUnderlineAction)
+        self.bulletAction.triggered.connect(self.handleBulletClicked)
+        self.linkAction.triggered.connect(self.handleLinkClicked)
+        self.leftAlignAction.triggered.connect(self.handleLeftAlignClicked)
+        self.centerAlignAction.triggered.connect(self.handleCenterAlignClicked)
+        self.rightAlignAction.triggered.connect(self.handleRightAlignClicked)
+        self.colorAction.triggered.connect(self.handleTextColorClicked)
+        self.uploadPushButton.pressed.connect(self.handleUploadImageClicked)
         
+        
+        self.updateDepartmentsList(self.departments)
+        self.updateParticipantsList(self.enrolledUsers)
+        
+    def handleSearchChanged(self,text):
+        self.filterPrograms(text)
+        
+    def filterPrograms(self, filterText):
+        text = filterText
+        filterProgramsData = self.programsData
+        if text != '':
+            result = []
+            for program in filterProgramsData:
+                if isinstance(program, dict) and 'title' in program and isinstance(program['title'], str):
+                    if text.lower() in program['title'].lower():
+                        result.append(program)
+                        pass
+                    pass
+                pass
+            filterProgramsData = result
+            pass
+
+        self.updateDisplayProgramsList(filterProgramsData)
+        self.handleSearchReturned()
+        
+    def updateDepartmentsList(self, data):
+        model = QStandardItemModel(self.listView_5)
+        for department in data:
+            item = QStandardItem(department)
+            item.setCheckable(True)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            model.appendRow(item)
+        self.listView_5.setModel(model)
+        delegate = CheckBoxDelegate(self.listView_5)
+        self.listView_5.setItemDelegate(delegate)
+        
+    def updateParticipantsList(self, data):
+        model = QStandardItemModel(self.listWidget_24)
+        for user in data:
+            item = QStandardItem(user)
+            item.setCheckable(True)
+            item.setCheckState(2)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            model.appendRow(item)
+        self.listWidget_24.setModel(model)
+        delegate = CheckBoxDelegate(self.listWidget_24)
+        self.listWidget_24.setItemDelegate(delegate)
+    
+    def handleTextColorClicked(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            charFormat = self.subtitleLineText.currentCharFormat()
+            charFormat.setForeground(color)
+            self.subtitleLineText.mergeCurrentCharFormat(charFormat)
+            
+    def handleBulletClicked(self):
+        cursor = self.subtitleLineText.textCursor()
+        listFormat = QTextListFormat()
+
+        if cursor.currentList():
+            listFormat.setStyle(Qt.NoPen)
+        else:
+            listFormat.setStyle(QTextListFormat.ListDisc)
+
+        cursor.beginEditBlock()
+        blockFormat = cursor.blockFormat()
+        blockFormat.setIndent(0)
+        cursor.setBlockFormat(blockFormat)
+        cursor.createList(listFormat)
+        cursor.endEditBlock()
+
+    def handleLinkClicked(self):
+        link, ok = QInputDialog.getText(self, "Insert Link", "Enter URL:")
+
+        if ok and link:
+            cursor = self.subtitleLineText.textCursor()
+            url = QUrl(link)
+            cursor.insertHtml(f'<a href="{url.toString()}">{url.toString()}</a>')
+
+    def handleLeftAlignClicked(self):
+        self.subtitleLineText.setAlignment(Qt.AlignLeft)
+
+    def handleCenterAlignClicked(self):
+        self.subtitleLineText.setAlignment(Qt.AlignCenter)
+
+    def handleRightAlignClicked(self):
+        self.subtitleLineText.setAlignment(Qt.AlignRight)
+
+    
+    def handleFontChanged(self, font):
+        self.subtitleLineText.setCurrentFont(font)
+
+    def handleFontSizeChanged(self, fontSize):
+        try:
+            pointSize = float(fontSize)
+            if pointSize > 0:
+                self.subtitleLineText.setFontPointSize(pointSize)
+        except ValueError:
+            pass
+
+    def handleBoldAction(self):
+        font = self.subtitleLineText.currentFont()
+        font.setBold(not font.bold())
+        
+        format = QTextCharFormat()
+        format.setFont(font)
+        
+        cursor = self.subtitleLineText.textCursor()
+        if not cursor.hasSelection():
+            cursor.select(QTextCursor.WordUnderCursor)
+            
+        cursor.mergeCharFormat(format)
+        self.subtitleLineText.mergeCurrentCharFormat(format)
+
+    def handleItalicAction(self):
+        italic = self.subtitleLineText.fontItalic()
+        self.subtitleLineText.setFontItalic(not italic)
+
+    def handleUnderlineAction(self):
+        underline = self.subtitleLineText.fontUnderline()
+        self.subtitleLineText.setFontUnderline(not underline)
+        
+    def handleUploadImageClicked(self):
+        filename, _ = QFileDialog.getOpenFileName(self, "Select Image", "", "Image Files (*.png *.jpg *.jpeg *.gif)")
+        if filename:
+            image = QPixmap(filename)
+            scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
+            self.graphicsView_12.setPixmap(scaledImage)
+
+    
+    def updateDisplayProgramsList(self, data):
+        self.programsListWidget.clear()
+        if isinstance(data, list) and len(data) > 0:
+            for item in data:
+                title = "Unknown"
+                if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
+                    title = item['title']
+                listItem = QListWidgetItem(title)
+                listItem.setData(Qt.UserRole, item)
+                self.programsListWidget.addItem(listItem)
+            pass
+        pass
+        
+        
+    def handleSearchReturned(self, index = 0):
+        if self.programsListWidget.count() > 0 and index >= 0:
+            data = self.programsListWidget.item(index).data(Qt.UserRole)
+            if(isinstance(data, object)):
+                self.programsListWidget.setCurrentRow(index)
+                self.updateDisplayInformationView(data)
+    
+    def updateDisplayInformationView(self, data):
+        print(data)
+        title = ""
+        imageUrl = ""
+        subtitle = ""
+        location = ""
+        
+        
+        if isinstance(data, object) and data != None:
+            item = data
+            if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
+                title = item['title']
+                pass
+            if 'imageUrl' in item and isinstance(item['imageUrl'], str) and item['imageUrl'] != None:
+                imageUrl = item['imageUrl']
+                pass
+            if 'description' in item and isinstance(item['description'], str) and item['description'] != None:
+                subtitle = item['description']
+                pass
+            if 'location' in item and isinstance(item['location'], str) and item['location'] != None:
+                location = item['location']
+                pass
+                
+            self.titleLineText.setText(title)
+            self.subtitleLineText.setText(subtitle)
+            scene = QGraphicsScene()
+            image = QImage()
+
+            image.loadFromData(requests.get(imageUrl).content)
+            scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
+            self.graphicsView_12.setPixmap(QPixmap(scaledImage))
+            self.subtitleLineText.setText(subtitle)
+            self.locationLineText.setText(location)
+            pass
+        pass
+    
+class CheckBoxDelegate(QStyledItemDelegate):
+        def initStyleOption(self, option, index):
+            super().initStyleOption(option, index)
+            option.features |= QStyleOptionViewItem.HasCheckIndicator
