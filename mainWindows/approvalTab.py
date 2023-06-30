@@ -1,8 +1,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame, QComboBox
+from PyQt5.QtCore import Qt
+from client import Client
 
 class ApprovalTab(QtWidgets.QWidget):
     def __init__(self):
         super(ApprovalTab, self).__init__()
+
+        self.approvalData = Client.getApproval()
 
         self.setObjectName("tab_2")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self)
@@ -41,38 +46,77 @@ class ApprovalTab(QtWidgets.QWidget):
         self.pushButton_4.clicked.connect(self.approveSelectedUser)
         self.lineEdit_17.textChanged.connect(self.searchByProgramID)
 
-        self.DisplayUsersList()
+        self.DisplayApprovalList(self.approvalData)
 
-    def DisplayUsersList(self):
-        # Dummy data for demonstration
-        users = [
-            {"userID": "001", "username": "John Doe", "department": "Finance", "approvalstatus": "Approved", "programid": "P001"},
-            {"userID": "002", "username": "Jane Smith", "department": "HR", "approvalstatus": "Pending", "programid": "P002"},
-            {"userID": "003", "username": "Bob Johnson", "department": "IT", "approvalstatus": "Declined", "programid": "P003"}
-        ]
+    def DisplayApprovalList(self, data):
+        self.listWidget_4.clear()
+        if isinstance(data, list) and len(data) > 0:
+            for item in data:
+                widget = self.createWidget(item)
+                listItem = QListWidgetItem()
+                listItem.setData(Qt.UserRole, item)
+                listItem.setSizeHint(widget.sizeHint())
+                self.listWidget_4.addItem(listItem)
+                self.listWidget_4.setItemWidget(listItem, widget)
+                # item = QtWidgets.QListWidgetItem(self.listWidget_4)
+                # self.listWidget_4.addItem(item)
+                # self.listWidget_4.setItemWidget(item, widget)
 
-        for user in users:
-            userWidget = self.createWidget(user["userID"], user["username"], user["department"], user["approvalstatus"], user["programid"])
-            item = QtWidgets.QListWidgetItem(self.listWidget_4)
-            self.listWidget_4.addItem(item)
-            self.listWidget_4.setItemWidget(item, userWidget)
+    def createWidget(self, item):
+        widget = QWidget()
+        widget.setObjectName("widget")
+        widget.setMaximumHeight(50)
 
-    def createWidget(self, userID, username, department, approvalstatus, programid):
-        widget = QtWidgets.QWidget()
-        layout = QtWidgets.QHBoxLayout(widget)
-        layout.setContentsMargins(0, 0, 0, 0)
+        # Set the border-radius and background color
+        widget.setStyleSheet("QWidget#widget { border-radius: 10px; background-color: #F5F5F5; }")
 
-        label_userID = QtWidgets.QLabel(userID)
-        label_username = QtWidgets.QLabel(username)
-        label_department = QtWidgets.QLabel(department)
-        label_approvalstatus = QtWidgets.QLabel(approvalstatus)
-        label_programid = QtWidgets.QLabel(programid)
+        horizontalLayout = QHBoxLayout(widget)
+        horizontalLayout.setObjectName("horizontalLayout")
 
-        layout.addWidget(label_userID)
-        layout.addWidget(label_username)
-        layout.addWidget(label_department)
-        layout.addWidget(label_approvalstatus)
-        layout.addWidget(label_programid)
+        #TODO
+        id = QLabel(widget)
+        id.setObjectName("id")
+        IDtext = "Unknown"
+        if 'id' in item and isinstance(item['id'], int) and item['id'] is not None:
+            IDtext = f"{item['id']}"
+
+        id.setText(IDtext)
+        id.setFixedWidth(100)
+        horizontalLayout.addWidget(id)
+
+        #TODO
+        userId = QLabel(widget)
+        userId.setObjectName("userId")
+        userIdtext = "Unknown"
+        if 'userId' in item and isinstance(item['userId'], int) and item['userId'] is not None:
+            userIdtext = f"{item['userId']}"
+
+        userId.setText(userIdtext)
+        userId.setFixedWidth(100)
+        horizontalLayout.addWidget(userId)
+
+        
+        #TODO
+        programId = QLabel(widget)
+        programId.setObjectName("programId")
+        programIdtext = "Unknown"
+        if 'programId' in item and isinstance(item['programId'], int) and item['programId'] is not None:
+            programIdtext = f"{item['programId']}"
+
+        programId.setText(programIdtext)
+        programId.setFixedWidth(100)
+        horizontalLayout.addWidget(programId)
+
+        #TODO 
+        approveStatus = QLabel(widget)
+        approveStatus.setObjectName("approveStatus")
+        approveStatustext = "Unknown"
+        if 'approveStatus' in item and isinstance(item['approveStatus'], int) and item['approveStatus'] is not None:
+            approveStatustext = f"{item['approveStatus']}"
+
+        approveStatus.setText(approveStatustext)
+        approveStatus.setFixedWidth(100)
+        horizontalLayout.addWidget(approveStatus)
 
         return widget
 

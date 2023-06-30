@@ -59,7 +59,6 @@ class NotificationsTab(QWidget):
 
         dateTimeLabel = QLabel(widget)
 
-        
         dateTimeText = "Unknown"
         programTitle = "Unknown"
         messageText = "Unknown"
@@ -80,10 +79,10 @@ class NotificationsTab(QWidget):
                 else:
                     dateTimeText = datetime.datetime.fromtimestamp(timestamp).strftime('%d %b %y')
 
-               
-            if 'program' in item and isinstance(item['program'], dict) and item['program'] != None:
-                if 'title' in item['program'] and isinstance(item['program']['title'], str) and item['program']['title'] != None:
-                    programTitle = item['program']['title']
+            #TODO   
+            if 'programId' in item and isinstance(item['programId'], dict) and item['programId'] != None:
+                if 'title' in item['programId'] and isinstance(item['programId']['title'], str) and item['programId']['title'] != None:
+                    programTitle = item['programId']['title']
             
             if 'type' in item and isinstance(item['type'], int) and item['type'] != None:
                 type = item['type']

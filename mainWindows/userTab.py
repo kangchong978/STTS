@@ -48,7 +48,7 @@ class AddUserDataWindow(QDialog):
         department = self.comboBoxDepartment.currentText()
 
         return {
-            'userid': int(userID),
+            'id': int(userID),
             'username': username,
             'department': department
         }
@@ -111,7 +111,7 @@ class UserTab(QWidget):
         self.ListWidget.setObjectName("ListWidget")
         self.verticalLayout.addWidget(self.ListWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-        
+
         self.lineEdit_4.setPlaceholderText("Search")
         self.pushButton_3.setText("Add")
         self.updateDisplayUsersList(self.usersData)
@@ -142,12 +142,13 @@ class UserTab(QWidget):
 
         horizontalLayout = QHBoxLayout(widget)
         horizontalLayout.setObjectName("horizontalLayout")
-
+        
+        #TODO
         userID = QLabel(widget)
         userID.setObjectName("userID")
         userIDtext = "Unknown"
-        if 'userid' in item and isinstance(item['userid'], int) and item['userid'] is not None:
-            userIDtext = f"{item['userid']}"
+        if 'id' in item and isinstance(item['id'], int) and item['id'] is not None:
+            userIDtext = f"{item['id']}"
 
         userID.setText(userIDtext)
         userID.setFixedWidth(100)
@@ -163,14 +164,15 @@ class UserTab(QWidget):
         username.setFixedWidth(100)
         horizontalLayout.addWidget(username)
 
+        #TODO
         department = QLabel(widget)
         department.setObjectName("department")
         departmenttext = "Unknown"
-        if 'department' in item and isinstance(item['department'], str) and item['department'] is not None:
-            departmenttext = item['department']
+        if 'departmentId' in item and isinstance(item['departmentId'], int) and item['departmentId'] is not None:
+            departmenttext = f"{item['departmentId']}"
 
         department.setText(departmenttext)
-        department.setFixedWidth(100)
+        department.setFixedWidth(100) 
         horizontalLayout.addWidget(department)
 
         return widget
@@ -191,7 +193,7 @@ class UserTab(QWidget):
         if selectedItem is not None:
             userData = selectedItem.data(Qt.UserRole)
             if userData is not None:
-                userID = userData.get('userid')
+                userID = userData.get('id')
                 if userID is not None:
                     # Prompt user for the updated information
                     editUserWindow = AddUserDataWindow(self)
@@ -203,7 +205,7 @@ class UserTab(QWidget):
 
                     if editUserWindow.exec_() == QDialog.Accepted:
                         updatedUserData = editUserWindow.getUserData()
-                        updatedUserData['userid'] = userID  # Ensure the User ID remains the same
+                        updatedUserData['id'] = userID  # Ensure the User ID remains the same
                         updatedWidget = self.createWidget(updatedUserData)
                         selectedItem.setData(Qt.UserRole, updatedUserData)
                         selectedItem.setSizeHint(updatedWidget.sizeHint())
@@ -222,9 +224,10 @@ class UserTab(QWidget):
             userData = listItem.data(Qt.UserRole)
             if userData:
                 if (
-                    searchValue in str(userData.get("userid")).lower()
+                    searchValue in str(userData.get("id")).lower()
                     or searchValue in userData.get("username", "").lower()
-                    or searchValue in userData.get("department", "").lower()
+                    #TODO
+                    or searchValue in userData.get("departmentId", "").lower()
                 ):
                     matchedItems.append(listItem)
 
