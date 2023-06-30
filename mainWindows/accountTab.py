@@ -153,9 +153,14 @@ class AccountTab(QWidget):
             #TODO
             # Save the new amount
             self.accountData["amount"] = newAmount
-            self.updateAccountDetails()
+            # self.updateAccountDetails()
             # Update the account data on the server
-            # Client.updateAccount(self.accountData)
+            result =  Client.updateAccount(self.accountData)
+            # print(result)
+            if result == True:
+                self.accountData = Client.getAccount()
+                self.updateAccountDetails()
+                
             
             
 class CustomWidget(QWidget):

@@ -81,3 +81,17 @@ class Client:
             result_list.append(result_dict)
 
         return result_list
+    
+    @staticmethod
+    def updateAccount(accountData):
+        print(f"{accountData}")
+        query = "INSERT INTO company ( amount, updatedTimestamp ) VALUES (%s, %s)"
+        values = (accountData['amount'], accountData['updatedTimestamp'])
+
+        cursor.execute(query, values)
+        connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
