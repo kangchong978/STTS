@@ -6,3 +6,6 @@ class Client:
     
     def getPrograms():
         return json.load(open('dummyData.json'))['programs']
+    
+    def getUsers():
+        return json.load(open('dummyDataUser.json'))['users']

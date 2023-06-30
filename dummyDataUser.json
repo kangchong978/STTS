@@ -1,0 +1,26 @@
+{
+    "users": [
+        {
+    "userid":0,
+    "username":"Kelvin",
+    "department":"Finance",
+    "password":"123456"
+
+        },
+        {
+            "userid":1,
+            "username":"Lucas",
+            "department":"Human Resources",
+            "password":"123456"
+        
+                },
+
+                {
+                    "userid":2,
+                    "username":"Brandon",
+                    "department":"Staff",
+                    "password":"123456"
+                
+                        }
+    ]
+}
