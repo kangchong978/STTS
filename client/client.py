@@ -3,9 +3,9 @@ import mysql.connector
 
 # Connection details for the remote database
 config = {
-    'host': '10.3.241.47',
+    'host': '3.145.170.172',
     'port': 3306,  # The default MySQL port is 3306
-    'user': 'stts_1',
+    'user': 'stts',
     # 'password': '',
     'database': 'stts_db',
 }
