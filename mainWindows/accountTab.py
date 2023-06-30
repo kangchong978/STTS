@@ -1,90 +1,163 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-class AccountTab(QtWidgets.QWidget):
+import sys
+sys.path.append("client")
+from client import Client
+sys.path.append("components")
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+import requests
+import datetime
+
+class AccountTab(QWidget):
     def __init__(self):
         super(AccountTab, self).__init__()
+        self.accountData = Client.getAccount()
+        self.progaramsData = Client.getPrograms()
  
         self.setObjectName("tab_5")
-        self.verticalLayout_7 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_7 = QVBoxLayout(self)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.widget_4 = QtWidgets.QWidget(self)
+        self.widget_4 = QWidget(self)
         self.widget_4.setObjectName("widget_4")
-        self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.widget_4)
+        self.horizontalLayout_5 = QHBoxLayout(self.widget_4)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.lineEdit_24 = QtWidgets.QLineEdit(self.widget_4)
-        self.lineEdit_24.setObjectName("lineEdit_24")
-        self.horizontalLayout_5.addWidget(self.lineEdit_24)
-        self.frame_6 = QtWidgets.QFrame(self.widget_4)
-        self.frame_6.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_6.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_6.setObjectName("frame_6")
-        self.horizontalLayout_5.addWidget(self.frame_6)
-        self.pushButton_64 = QtWidgets.QPushButton(self.widget_4)
+        self.label_1 = QLabel(self.widget_4)
+        self.label_1.setObjectName("label_1")
+        self.horizontalLayout_5.addWidget(self.label_1)
+        self.label_2 = QLabel(self.widget_4)
+        self.label_2.setObjectName("label_1")
+        self.horizontalLayout_5.addWidget(self.label_2)
+        self.frame_6 = QFrame(self.widget_4)
+
+        self.pushButton_64 = QPushButton(self.widget_4)
         self.pushButton_64.setObjectName("pushButton_64")
         self.horizontalLayout_5.addWidget(self.pushButton_64)
-        self.horizontalLayout_5.setStretch(0, 2)
-        self.horizontalLayout_5.setStretch(1, 2)
-        self.horizontalLayout_5.setStretch(2, 1)
-        self.verticalLayout_7.addWidget(self.widget_4)
-        self.widget_5 = QtWidgets.QWidget(self)
-        self.widget_5.setObjectName("widget_5")
-        self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self.widget_5)
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.lineEdit_23 = QtWidgets.QLineEdit(self.widget_5)
-        self.lineEdit_23.setObjectName("lineEdit_23")
-        self.horizontalLayout_6.addWidget(self.lineEdit_23)
-        self.frame_5 = QtWidgets.QFrame(self.widget_5)
-        self.frame_5.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_5.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_5.setObjectName("frame_5")
-        self.horizontalLayout_6.addWidget(self.frame_5)
-        self.pushButton_69 = QtWidgets.QPushButton(self.widget_5)
-        self.pushButton_69.setObjectName("pushButton_69")
-        self.horizontalLayout_6.addWidget(self.pushButton_69)
-        self.pushButton_68 = QtWidgets.QPushButton(self.widget_5)
-        self.pushButton_68.setObjectName("pushButton_68")
-        self.horizontalLayout_6.addWidget(self.pushButton_68)
-        self.pushButton_65 = QtWidgets.QPushButton(self.widget_5)
-        self.pushButton_65.setObjectName("pushButton_65")
-        self.horizontalLayout_6.addWidget(self.pushButton_65)
-        self.horizontalLayout_6.setStretch(0, 2)
-        self.horizontalLayout_6.setStretch(1, 1)
-        self.verticalLayout_7.addWidget(self.widget_5)
-        self.widget_13 = QtWidgets.QWidget(self)
-        self.widget_13.setObjectName("widget_13")
-        self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.widget_13)
-        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.checkBox_3 = QtWidgets.QCheckBox(self.widget_13)
-        self.checkBox_3.setText("")
-        self.checkBox_3.setObjectName("checkBox_3")
-        self.horizontalLayout_7.addWidget(self.checkBox_3)
-        self.label_85 = QtWidgets.QLabel(self.widget_13)
-        self.label_85.setObjectName("label_85")
-        self.horizontalLayout_7.addWidget(self.label_85)
-        self.label_84 = QtWidgets.QLabel(self.widget_13)
-        self.label_84.setObjectName("label_84")
-        self.horizontalLayout_7.addWidget(self.label_84)
-        self.label_87 = QtWidgets.QLabel(self.widget_13)
-        self.label_87.setObjectName("label_87")
-        self.horizontalLayout_7.addWidget(self.label_87)
-        self.pushButton_66 = QtWidgets.QPushButton(self.widget_13)
-        self.pushButton_66.setObjectName("pushButton_66")
-        self.horizontalLayout_7.addWidget(self.pushButton_66)
-        self.pushButton_67 = QtWidgets.QPushButton(self.widget_13)
-        self.pushButton_67.setObjectName("pushButton_67")
-        self.horizontalLayout_7.addWidget(self.pushButton_67)
-        self.verticalLayout_7.addWidget(self.widget_13)
-        self.listWidget_22 = QtWidgets.QListWidget(self)
-        self.listWidget_22.setObjectName("listWidget_22")
-        self.verticalLayout_7.addWidget(self.listWidget_22)
+        self.horizontalLayout_5.addWidget(self.frame_6)
 
-        self.lineEdit_24.setText("Company Amount")
+        self.verticalLayout_7.addWidget(self.widget_4)
+        self.widget_5 = QWidget(self)
+        self.widget_5.setObjectName("widget_5")
+        self.horizontalLayout_6 = QHBoxLayout(self.widget_5)
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.searchLineEdit = QLineEdit(self.widget_5)
+        self.searchLineEdit.setObjectName("searchLineEdit")
+        self.horizontalLayout_6.addWidget(self.searchLineEdit)
+        self.verticalLayout_7.addWidget(self.widget_5)
+        self.widget_13 = QWidget(self)
+        self.widget_13.setObjectName("widget_13")
+        self.verticalLayout_7.addWidget(self.widget_13)
+        self.listView = QListWidget(self)
+        self.listView.setObjectName("listView")
+        self.verticalLayout_7.addWidget(self.listView)
+        self.label_1.setText("Company Amount")
         self.pushButton_64.setText("Update Amount")
-        self.pushButton_69.setText("Select All")
-        self.pushButton_68.setText("Reject")
-        self.pushButton_65.setText("Done")
-        self.pushButton_66.setText("Done")
-        self.pushButton_67.setText("Reject")
-        self.label_85.setText("Total Staff")
-        self.label_84.setText("Payment Status")
-        self.label_84.setText("Amount")
+        self.searchLineEdit.setPlaceholderText("Search")
+        self.updateAccountDetails()
+        self.updateDisplayApprovementList(self.progaramsData)
+        self.searchLineEdit.textChanged.connect(self.searchPrograms)  # Connect Search bar signal to function
+        self.pushButton_64.clicked.connect(self.showUpdateAmountDialog)  # Connect button signal to dialog function
+        
+    def updateAccountDetails(self):
+        data =  self.accountData
+        totalAmount = "$ "
+        if(isinstance(data, dict) and "amount" in data and isinstance(data["amount"], float)):
+            totalAmount += f'{data["amount"]}'
+            pass
+        self.label_2.setText(totalAmount)
+        
+    def updateDisplayApprovementList(self, data):
+        self.listView.clear()
+        if isinstance(data, list) and len(data) > 0:
+            for item in data:
+                widget = self.createWidget(item)
+                listItem = QListWidgetItem()
+                listItem.setData(Qt.UserRole, item)
+                listItem.setSizeHint(widget.sizeHint())
+                self.listView.addItem(listItem)
+                self.listView.setItemWidget(listItem, widget)
+            pass
+        pass
+    
+            
+    def searchPrograms(self):
+        searchValue = self.searchLineEdit.text().strip().lower()
+        matchedItems = []
+        for i in range(self.listView.count()):
+            listItem = self.listView.item(i)
+            department = listItem.data(Qt.UserRole)
+            if department:
+                if (
+                    searchValue in str(department.get("title")).lower()
+                ):
+                    matchedItems.append(listItem)
+
+        for i in range(self.listView.count()):
+            listItem = self.listView.item(i)
+            listItem.setHidden(listItem not in matchedItems)
+        pass
+    def createWidget(self, item):
+        
+        widget = CustomWidget()
+        widget.setObjectName("widget")
+
+        # Set the border-radius and background color
+        widget.setStyleSheet("QWidget#widget { background-color: #F5F5F5; }")
+        widget.setFixedHeight(40)
+        horizontalLayout = QHBoxLayout(widget)
+        horizontalLayout.setObjectName("horizontalLayout")
+        programNameLabel = QLabel(widget)
+        programNameLabel.setObjectName("programNameLabel")
+        programCostLabel = QLabel(widget)
+        programCostLabel.setObjectName("programCostLabel")
+        programCostLabel.setMinimumWidth(100)
+        paymentDoneButton = QPushButton(widget)
+        paymentDoneButton.setObjectName("paymentDoneButton")
+        paymentDoneButton.setFixedWidth(100)
+        paymentRejectButton = QPushButton(widget)
+        paymentRejectButton.setObjectName("paymentRejectButton")
+        paymentRejectButton.setFixedWidth(100)
+        
+        paymentDoneButton.setText("Done")
+        paymentRejectButton.setText("Reject")
+        
+      
+        
+        programTitle = "Unknown"
+        programTotalCost = "0.00"
+       
+        
+        if isinstance(item, dict):
+            if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
+                    programTitle = item['title']
+            if 'totalCost' in item and isinstance(item['totalCost'], float) and item['totalCost'] != None:
+                    programTotalCost = "{:.2f}".format(item['totalCost'])
+    
+        
+        programNameLabel.setText( programTitle)
+        programCostLabel.setText( "<font color = 'red'> - $" +programTotalCost+ "</font>")
+        
+        horizontalLayout.addWidget(programCostLabel)
+        horizontalLayout.addWidget(programNameLabel)
+        horizontalLayout.addWidget(paymentDoneButton)
+        horizontalLayout.addWidget(paymentRejectButton)
+        horizontalLayout.setStretch(1,2)
+        
+        return widget
+    
+    def showUpdateAmountDialog(self):
+        currentAmount = self.accountData.get("amount", 0.0)
+        newAmount, ok = QInputDialog.getDouble(self, "Update Amount", "Enter new amount:", currentAmount, decimals=2)
+        if ok:
+            # Save the new amount
+            self.accountData["amount"] = newAmount
+            self.updateAccountDetails()
+            # Update the account data on the server
+            # Client.updateAccount(self.accountData)
+            
+            
+class CustomWidget(QWidget):
+    def sizeHint(self):
+        return QSize(self.width(), self.height())
+        
+    

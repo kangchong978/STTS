@@ -15,7 +15,10 @@
                 {
                     "username": "username 2"
                 }
-            ]
+            ],
+            "totalCost": 100000.00,
+            "paymentDone": false,
+            "paymentRejected": false
         },
         {
             "pid": 1,
