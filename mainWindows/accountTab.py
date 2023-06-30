@@ -85,6 +85,7 @@ class AccountTab(QWidget):
         matchedItems = []
         for i in range(self.listView.count()):
             listItem = self.listView.item(i)
+            #TODO
             department = listItem.data(Qt.UserRole)
             if department:
                 if (
@@ -130,8 +131,8 @@ class AccountTab(QWidget):
         if isinstance(item, dict):
             if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
                     programTitle = item['title']
-            if 'totalCost' in item and isinstance(item['totalCost'], float) and item['totalCost'] != None:
-                    programTotalCost = "{:.2f}".format(item['totalCost'])
+            if 'cost' in item and isinstance(item['cost'], float) and item['cost'] != None:
+                    programTotalCost = "{:.2f}".format(item['cost'])
     
         
         programNameLabel.setText( programTitle)
@@ -149,6 +150,7 @@ class AccountTab(QWidget):
         currentAmount = self.accountData.get("amount", 0.0)
         newAmount, ok = QInputDialog.getDouble(self, "Update Amount", "Enter new amount:", currentAmount, decimals=2)
         if ok:
+            #TODO
             # Save the new amount
             self.accountData["amount"] = newAmount
             self.updateAccountDetails()
