@@ -2,10 +2,14 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class EnrolmentDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, type= 0, programName= ""):
         super(EnrolmentDialog, self).__init__(parent)
         
-        self.setWindowTitle("Enroll comfirmation")
+        if type == 0:
+            self.setWindowTitle("Enroll comfirmation")
+        elif type == 1:
+            self.setWindowTitle("Cancel comfirmation")
+            
         self.resize(242, 114)
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -30,8 +34,12 @@ class EnrolmentDialog(QtWidgets.QDialog):
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
         
-        self.label.setText("Are you want to enroll to:")
-        self.label2.setText("programs name")
+        if type == 0:
+            self.label.setText("Are you want to enroll to:")
+        elif type == 1:
+            self.label.setText("Are you want to cancel to:")
+            
+        self.label2.setText(f"{programName}")
         
         self.buttonBox.accepted.connect(self.accept) # type: ignore
         self.buttonBox.rejected.connect(self.reject) # type: ignore

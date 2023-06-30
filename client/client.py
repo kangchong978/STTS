@@ -95,3 +95,16 @@ class Client:
             return True
         else:
             return False
+        
+    @staticmethod
+    def updateUserProgramApprovements(id,programsData):
+        query = "UPDATE users SET programs = %s WHERE id = %s"
+        values = (f'{{"programs":{json.dumps(programsData)}}}', id)
+
+        cursor.execute(query, values)
+        connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
