@@ -1,6 +1,9 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+import datetime
+from PyQt5.QtCore import QTime
+from PyQt5.QtCore import QDateTime
 import requests
 import sys
 sys.path.append("client")
@@ -328,6 +331,7 @@ class AddProgramTab(QWidget):
         title = ""
         imageUrl = ""
         subtitle = ""
+        dateTime = QDate.currentDate()
         location = ""
         
         
@@ -342,6 +346,16 @@ class AddProgramTab(QWidget):
             if 'description' in item and isinstance(item['description'], str) and item['description'] != None:
                 subtitle = item['description']
                 pass
+            if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] != None:
+                timestamp = item['timestamp']
+                datetime_obj = datetime.datetime.fromtimestamp(timestamp)
+
+                # Create QDateTime object with today's date and time from timestamp
+                dateTime = QDateTime(datetime_obj.date(), datetime_obj.time())
+
+                # Set the QDateTime to the QDateTimeEdit widget
+                self.dateTimeEdit.setDateTime(dateTime)
+                
             if 'location' in item and isinstance(item['location'], str) and item['location'] != None:
                 location = item['location']
                 pass
@@ -356,8 +370,10 @@ class AddProgramTab(QWidget):
             self.graphicsView_12.setPixmap(QPixmap(scaledImage))
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
+            self.dateTimeEdit.setDateTime(dateTime)
             pass
         pass
+    
     
 class CheckBoxDelegate(QStyledItemDelegate):
         def initStyleOption(self, option, index):
