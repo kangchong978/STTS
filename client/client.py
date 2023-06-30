@@ -2,21 +2,35 @@ import json
 import mysql.connector
 from tqdm import tqdm
 from PyQt5.QtWidgets import QApplication, QProgressDialog
+import json
 
-# Connection details for the remote database
-config = {
-    'host': '3.145.170.172',
-    'port': 3306,  # The default MySQL port is 3306
-    'user': 'stts',
-    # 'password': '',
-    'database': 'stts_db',
-}
+# Load settings from settings.json
+with open('settings.json', 'r') as f:
+    config = json.load(f)
+    if config != {}:
+        # Create a connection to the remote database using the loaded settings
+        connection = mysql.connector.connect(**config)
+        cursor = connection.cursor()
 
-# Create a connection to the remote database
-connection = mysql.connector.connect(**config)
-cursor = connection.cursor()
 
 class Client:
+    @staticmethod
+    def updateConfig( ):
+        # Load settings from settings.json
+        with open('settings.json', 'r') as f:
+          config = json.load(f)
+        Client.config = {
+            'host': config['host'],
+            'port': config['port'],
+            'user': config['user'],
+            'password': config['password'],
+            'database': config['database']
+        }
+        
+        # Re-establish the connection
+        Client.connection = mysql.connector.connect(**Client.config)
+        Client.cursor = Client.connection.cursor()
+    
     @staticmethod
     def setCursor(cursor):
         Client.cursor = cursor
