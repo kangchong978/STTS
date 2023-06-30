@@ -111,7 +111,7 @@ class UserTab(QWidget):
         self.ListWidget.setObjectName("ListWidget")
         self.verticalLayout.addWidget(self.ListWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
-
+        
         self.lineEdit_4.setPlaceholderText("Search")
         self.pushButton_3.setText("Add")
         self.updateDisplayUsersList(self.usersData)
