@@ -117,33 +117,33 @@ class ProgramsTab(QWidget):
     def filterPrograms(self):
         text = self.filterText
         filterProgramsData = self.programsData
-        if self.filerOption != 0:
-            stateFilter = None
-            if self.filerOption == 1:
-                stateFilter = 0
-                pass
-            elif self.filerOption == 2:
-                stateFilter = 1
-                pass
-            elif self.filerOption == 3:
-                stateFilter = 2
-                pass
-            elif self.filerOption == 4:
-                stateFilter = 3
-                pass
+        # if self.filerOption != 0:
+        #     stateFilter = None
+        #     if self.filerOption == 1:
+        #         stateFilter = 0
+        #         pass
+        #     elif self.filerOption == 2:
+        #         stateFilter = 1
+        #         pass
+        #     elif self.filerOption == 3:
+        #         stateFilter = 2
+        #         pass
+        #     elif self.filerOption == 4:
+        #         stateFilter = 3
+        #         pass
             
-            if stateFilter != None:
-                result = []
-                for program in filterProgramsData:
-                    if isinstance(program, dict) and 'enrollStatusCode' in program and isinstance(program['enrollStatusCode'], int):
-                        if program['enrollStatusCode'] == stateFilter:
-                            result.append(program)
-                            pass
-                        pass
-                    pass
-                pass
-                filterProgramsData = result
-            pass
+        #     if stateFilter != None:
+        #         result = []
+        #         for program in filterProgramsData:
+        #             if isinstance(program, dict) and 'enrollStatusCode' in program and isinstance(program['enrollStatusCode'], int):
+        #                 if program['enrollStatusCode'] == stateFilter:
+        #                     result.append(program)
+        #                     pass
+        #                 pass
+        #             pass
+        #         pass
+        #         filterProgramsData = result
+        #     pass
         
         if text != '':
             result = []
@@ -164,10 +164,10 @@ class ProgramsTab(QWidget):
         
     def handleSearchReturned(self, index = 0):
         if self.programsListWidget.count() > 0 and index >= 0:
-            pid = self.programsListWidget.item(index).data(Qt.UserRole)['pid']
+            pid = self.programsListWidget.item(index).data(Qt.UserRole)['id']
             i = -1
             for x, obj in enumerate(self.programsData):
-                if isinstance(obj, dict) and 'pid' in obj and obj['pid'] == pid:
+                if isinstance(obj, dict) and 'id' in obj and obj['id'] == pid:
                     i = x
                     
             if(i>=0):
@@ -216,7 +216,10 @@ class ProgramsTab(QWidget):
                 pass
                 self.titleLabel.setText(title)
                 image = QImage()
-                image.loadFromData(requests.get(imageUrl).content)
+                try:
+                    image.loadFromData(requests.get(imageUrl).content)
+                except:
+                    pass
                 scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
                 self.graphicsView_3.setPixmap(QPixmap(scaledImage))
                 self.subtitleLabel.setText(subtitle)
@@ -226,33 +229,34 @@ class ProgramsTab(QWidget):
                     self.enrollPushButton.clicked.disconnect()
 
                 self.enrollPushButton.clicked.connect(self.noneNoneDialog)
-                if 'enrollStatusCode' in item and isinstance(item['enrollStatusCode'], int) and item['enrollStatusCode'] != None:
-                    if item['enrollStatusCode'] == 0:
-                        self.enrollPushButton.setText("Enroll now")
-                        self.enrollPushButton.setEnabled(True)
-                        self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
-                        pass
-                    elif item['enrollStatusCode'] == 1:
-                        self.enrollPushButton.setText("Cancel")
-                        self.enrollPushButton.setEnabled(True)
-                        self.enrollPushButton.clicked.connect(self.noneNoneDialog)
-                        pass
-                    elif item['enrollStatusCode'] == 2:
-                        self.enrollPushButton.setText("Cancel")
-                        self.enrollPushButton.setEnabled(True)
-                        self.enrollPushButton.clicked.connect(self.noneNoneDialog)
-                        pass
-                    else:
-                        self.enrollPushButton.setText("Enroll now")
-                        self.enrollPushButton.setEnabled(False)
-                        self.enrollPushButton.clicked.connect(self.noneNoneDialog)
-                        pass
-                    pass
-                else:
-                    self.enrollPushButton.setText("Enroll now")
-                    self.enrollPushButton.setEnabled(False)
-                    self.enrollPushButton.clicked.connect(self.noneNoneDialog)
-                    pass
+                # TODO
+                # if 'enrollStatusCode' in item and isinstance(item['enrollStatusCode'], int) and item['enrollStatusCode'] != None:
+                #     if item['enrollStatusCode'] == 0:
+                #         self.enrollPushButton.setText("Enroll now")
+                #         self.enrollPushButton.setEnabled(True)
+                #         self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
+                #         pass
+                #     elif item['enrollStatusCode'] == 1:
+                #         self.enrollPushButton.setText("Cancel")
+                #         self.enrollPushButton.setEnabled(True)
+                #         self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                #         pass
+                #     elif item['enrollStatusCode'] == 2:
+                #         self.enrollPushButton.setText("Cancel")
+                #         self.enrollPushButton.setEnabled(True)
+                #         self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                #         pass
+                #     else:
+                #         self.enrollPushButton.setText("Enroll now")
+                #         self.enrollPushButton.setEnabled(False)
+                #         self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                #         pass
+                #     pass
+                # else:
+                #     self.enrollPushButton.setText("Enroll now")
+                #     self.enrollPushButton.setEnabled(False)
+                #     self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                #     pass
             pass
         pass
     def showEnrollmentFormDialog(self):
@@ -280,15 +284,17 @@ class ProgramsTab(QWidget):
         statusLabel = QLabel(widget)
         statusLabel.setObjectName("statusLabel")
         statusText = "Unknown"
-        if 'enrollStatusCode' in item and isinstance(item['enrollStatusCode'], int) and item['enrollStatusCode'] is not None:
-            if item['enrollStatusCode'] == 0:
-                statusText = "Available"
-            elif item['enrollStatusCode'] == 1:
-                statusText = "Pending Approve"
-            elif item['enrollStatusCode'] == 2:
-                statusText = "Enrolled"
-            elif item['enrollStatusCode'] == 3:
-                statusText = "Rejected"
+        
+        # TODO
+        # if 'enrollStatusCode' in item and isinstance(item['enrollStatusCode'], int) and item['enrollStatusCode'] is not None:
+        #     if item['enrollStatusCode'] == 0:
+        #         statusText = "Available"
+        #     elif item['enrollStatusCode'] == 1:
+        #         statusText = "Pending Approve"
+        #     elif item['enrollStatusCode'] == 2:
+        #         statusText = "Enrolled"
+        #     elif item['enrollStatusCode'] == 3:
+        #         statusText = "Rejected"
 
         statusLabel.setText(statusText)
         statusLabel.setFixedWidth(100)

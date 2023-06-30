@@ -7,6 +7,8 @@ from PyQt5.QtCore import QDateTime
 import requests
 import sys
 sys.path.append("client")
+import json
+
 from client import Client
 class AddProgramTab(QWidget):
     def __init__(self):
@@ -14,8 +16,7 @@ class AddProgramTab(QWidget):
 
         self.programsData = Client.getPrograms()
         self.suggestionFontSizes = ["8", "10", "13", "16", "24", "32"]
-        self.departments = ["Department 1", "Department 2", "Department 3", "Department 4"]
-        self.enrolledUsers = ["a 1", "b 2", "c 3", "d 4"]
+        self.departments = Client.getDepartment()
         
 
         self.setObjectName("AddProgramTab")
@@ -176,8 +177,7 @@ class AddProgramTab(QWidget):
         self.uploadPushButton.pressed.connect(self.handleUploadImageClicked)
         
         
-        self.updateDepartmentsList(self.departments)
-        self.updateParticipantsList(self.enrolledUsers)
+       
         
     def handleSearchChanged(self,text):
         self.filterPrograms(text)
@@ -214,7 +214,8 @@ class AddProgramTab(QWidget):
     def updateParticipantsList(self, data):
         model = QStandardItemModel(self.listWidget_24)
         for user in data:
-            item = QStandardItem(user)
+            # TODO
+            item = QStandardItem(f"{user}")
             item.setCheckable(True)
             item.setCheckState(2)
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
@@ -327,12 +328,13 @@ class AddProgramTab(QWidget):
                 self.updateDisplayInformationView(data)
     
     def updateDisplayInformationView(self, data):
-        print(data)
+        
         title = ""
         imageUrl = ""
         subtitle = ""
         dateTime = QDate.currentDate()
         location = ""
+        enrolledUsers = []
         
         
         if isinstance(data, object) and data != None:
@@ -349,28 +351,37 @@ class AddProgramTab(QWidget):
             if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] != None:
                 timestamp = item['timestamp']
                 datetime_obj = datetime.datetime.fromtimestamp(timestamp)
-
-                # Create QDateTime object with today's date and time from timestamp
                 dateTime = QDateTime(datetime_obj.date(), datetime_obj.time())
-
-                # Set the QDateTime to the QDateTimeEdit widget
-                self.dateTimeEdit.setDateTime(dateTime)
-                
             if 'location' in item and isinstance(item['location'], str) and item['location'] != None:
                 location = item['location']
+                pass
+            if 'users' in item and isinstance(item['users'], str) and item['users'] != None:
+                parsed_json = json.loads(item['users'])
+                if 'users' in parsed_json and isinstance(parsed_json['users'], list) and parsed_json['users'] != None:
+                    enrolledUsers = parsed_json['users']
                 pass
                 
             self.titleLineText.setText(title)
             self.subtitleLineText.setText(subtitle)
             scene = QGraphicsScene()
             image = QImage()
-
-            image.loadFromData(requests.get(imageUrl).content)
+            try:
+                image.loadFromData(requests.get(imageUrl).content)
+            except:
+                pass    
+            
             scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
             self.graphicsView_12.setPixmap(QPixmap(scaledImage))
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
-            self.dateTimeEdit.setDateTime(dateTime)
+            self.updateParticipantsList(enrolledUsers)
+            # TODO
+            #self.updateDepartmentsList()
+            
+            try:
+                self.dateTimeEdit.setDateTime(dateTime)
+            except:
+                pass
             pass
         pass
     

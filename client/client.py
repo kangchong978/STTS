@@ -39,9 +39,14 @@ class Client:
 
     @staticmethod
     def getAccount():
-        cursor.execute("SELECT * FROM company")
+        # latest 1 only
+        cursor.execute("SELECT * FROM company ORDER BY updatedTimestamp DESC LIMIT 1")
         results = cursor.fetchall()
-        return Client.parseToDict(results)
+        parsed = Client.parseToDict(results)
+        if len(parsed) > 0:
+            return parsed[0]
+            pass
+        return None
     @staticmethod
     def getApproval():
         cursor.execute("SELECT * FROM approval")
