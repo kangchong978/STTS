@@ -58,9 +58,6 @@ class ApprovalTab(QtWidgets.QWidget):
                 listItem.setSizeHint(widget.sizeHint())
                 self.listWidget_4.addItem(listItem)
                 self.listWidget_4.setItemWidget(listItem, widget)
-                # item = QtWidgets.QListWidgetItem(self.listWidget_4)
-                # self.listWidget_4.addItem(item)
-                # self.listWidget_4.setItemWidget(item, widget)
 
     def createWidget(self, item):
         widget = QWidget()
@@ -73,7 +70,6 @@ class ApprovalTab(QtWidgets.QWidget):
         horizontalLayout = QHBoxLayout(widget)
         horizontalLayout.setObjectName("horizontalLayout")
 
-        #TODO
         id = QLabel(widget)
         id.setObjectName("id")
         IDtext = "Unknown"
@@ -84,7 +80,6 @@ class ApprovalTab(QtWidgets.QWidget):
         id.setFixedWidth(100)
         horizontalLayout.addWidget(id)
 
-        #TODO
         userId = QLabel(widget)
         userId.setObjectName("userId")
         userIdtext = "Unknown"
@@ -95,8 +90,6 @@ class ApprovalTab(QtWidgets.QWidget):
         userId.setFixedWidth(100)
         horizontalLayout.addWidget(userId)
 
-        
-        #TODO
         programId = QLabel(widget)
         programId.setObjectName("programId")
         programIdtext = "Unknown"
@@ -107,12 +100,18 @@ class ApprovalTab(QtWidgets.QWidget):
         programId.setFixedWidth(100)
         horizontalLayout.addWidget(programId)
 
-        #TODO 
         approveStatus = QLabel(widget)
         approveStatus.setObjectName("approveStatus")
         approveStatustext = "Unknown"
         if 'approveStatus' in item and isinstance(item['approveStatus'], int) and item['approveStatus'] is not None:
-            approveStatustext = f"{item['approveStatus']}"
+            if item['approveStatus'] == 1:
+                approveStatustext = "Pending"
+            elif item['approveStatus'] == 0:
+                approveStatustext = "Declined"
+            elif item['approveStatus'] == 2:
+                approveStatustext = "Approved"
+            else:
+                approveStatustext = "Unknown"
 
         approveStatus.setText(approveStatustext)
         approveStatus.setFixedWidth(100)
@@ -126,6 +125,21 @@ class ApprovalTab(QtWidgets.QWidget):
             user_widget = self.listWidget_4.itemWidget(item)
             approval_status_label = user_widget.layout().itemAt(3).widget()
             approval_status_label.setText("Declined")
+            
+            # Get the userID associated with the selected user
+            user_id_label = user_widget.layout().itemAt(0).widget()
+            user_id = user_id_label.text()
+            
+            # Update the approval status in the database
+            approval_data = {
+                "id": int(user_id),
+                "approveStatus": 0  # Set the status to 0 for Declined
+            }
+            Client.updateApproval(approval_data)
+            
+            # Output "Declined" if the approveStatus is 0
+            if approval_data["approveStatus"] == 0:
+                print("Declined")
 
     def approveSelectedUser(self):
         selected_items = self.listWidget_4.selectedItems()
@@ -133,13 +147,28 @@ class ApprovalTab(QtWidgets.QWidget):
             user_widget = self.listWidget_4.itemWidget(item)
             approval_status_label = user_widget.layout().itemAt(3).widget()
             approval_status_label.setText("Approved")
+            
+            # Get the userID associated with the selected user
+            user_id_label = user_widget.layout().itemAt(0).widget()
+            user_id = user_id_label.text()
+            
+            # Update the approval status in the database
+            approval_data = {
+                "id": int(user_id),
+                "approveStatus": 2  # Set the status to 2 for Approved
+            }
+            Client.updateApproval(approval_data)
+            
+            # Output "Approved" if the approveStatus is 2
+            if approval_data["approveStatus"] == 2:
+                print("Approved")
 
     def searchByProgramID(self, text):
         count = self.listWidget_4.count()
         for index in range(count):
             item = self.listWidget_4.item(index)
             user_widget = self.listWidget_4.itemWidget(item)
-            programid_label = user_widget.layout().itemAt(4).widget()
+            programid_label = user_widget.layout().itemAt(2).widget()
             programid = programid_label.text()
             if text.lower() in programid.lower():
                 item.setHidden(False)
