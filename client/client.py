@@ -34,29 +34,29 @@ class Client:
 
     @staticmethod
     def getAccount():
-        cursor.execute("SELECT * FROM account")
+        cursor.execute("SELECT * FROM company")
         results = cursor.fetchall()
         return Client.parseToDict(results)
     @staticmethod
-    def getPrograms():
+    def getApproval():
         cursor.execute("SELECT * FROM approval")
         results = cursor.fetchall()
         return Client.parseToDict(results)
     
     @staticmethod
-    def getUsers():
+    def getDepartment():
         cursor.execute("SELECT * FROM department")
         results = cursor.fetchall()
         return Client.parseToDict(results)
     
     @staticmethod
-    def getNotifications():
+    def getFileStorage():
         cursor.execute("SELECT * FROM files_storage")
         results = cursor.fetchall()
         return Client.parseToDict(results)
 
     @staticmethod
-    def getAccount():
+    def getCompany():
         cursor.execute("SELECT * FROM company")
         results = cursor.fetchall()
         return Client.parseToDict(results)
