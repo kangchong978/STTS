@@ -1,12 +1,17 @@
 import json
 import mysql.connector
 
-connection = mysql.connector.connect(
-    host='localhost',
-    port=3306,
-    user='stts',
-    database='stts_db'
-)
+# Connection details for the remote database
+config = {
+    'host': '10.3.241.47',
+    'port': 3306,  # The default MySQL port is 3306
+    'user': 'stts_1',
+    # 'password': '',
+    'database': 'stts_db',
+}
+
+# Create a connection to the remote database
+connection = mysql.connector.connect(**config)
 cursor = connection.cursor()
 
 class Client:
