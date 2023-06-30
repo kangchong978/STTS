@@ -9,5 +9,10 @@ class Client:
     
     def getUsers():
         return json.load(open('dummyDataUser.json'))['users']
+    
     def getNotifications():
         return json.load(open('dummyNotifications.json'))['notifications']
+
+    def getAccount():
+        return json.load(open('dummyAccounts.json'))['account']
+    
