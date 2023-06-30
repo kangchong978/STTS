@@ -6,8 +6,12 @@ from mainWindows.detailsTab import DetailsTab
 from mainWindows.programsTab import ProgramsTab
 from mainWindows.userTab import UserTab
 from mainWindows.notificationsTab import NotificationsTab
+from components.login import LoginWindow
+
 
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QApplication, QDialog, QMainWindow, QPushButton
+
  
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -42,6 +46,9 @@ class MainWindow(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
+  
+    dialog = LoginWindow()
+    if dialog.exec_() == QDialog.Accepted:
+        window = MainWindow()
+        window.show()
     sys.exit(app.exec_())

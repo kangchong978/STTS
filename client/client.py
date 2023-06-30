@@ -159,3 +159,24 @@ class Client:
             return True
         else:
             return False
+
+    @staticmethod
+    def checkCredentials(username, password):
+        query = "SELECT * FROM users WHERE username = %s"
+        values = [username]  # Make sure to pass values as a tuple
+
+        cursor.execute(query, values)
+        result = cursor.fetchone()
+
+        if result is None:
+            return False
+
+        # Assuming the password is stored in the database as a hash, compare it with the provided password
+        # You may need to adapt this part based on how passwords are stored and hashed in your database
+        # Assuming the password is stored in the second column (index 1) of the query result
+        stored_password = result[1]
+
+        if stored_password == password:
+            return True
+        else:
+            return False
