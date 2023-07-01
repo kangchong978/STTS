@@ -16,7 +16,7 @@ class AddProgramTab(QWidget):
 
         self.programsData = Client.getPrograms()
         self.suggestionFontSizes = ["8", "10", "13", "16", "24", "32"]
-        self.departments = Client.getDepartment()
+        self.departments = Client.getDepartments()
         
 
         self.setObjectName("AddProgramTab")
