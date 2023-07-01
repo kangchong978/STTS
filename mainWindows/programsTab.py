@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import *
 import requests
 import datetime
 import json
+import client
+
 class ProgramsTab(QWidget):
     def __init__(self):
         super(ProgramsTab, self).__init__()
@@ -179,8 +181,8 @@ class ProgramsTab(QWidget):
                 
     def getClientEnrolledPrograms(self):
         #TODO
-        self.currentUser = Client.getUsers()[0]
-        self.usersData = Client.getUsers()
+        userData = client.user
+        self.currentUser = Client.getUser(userData["username"])
         if 'programs' in self.currentUser and isinstance(self.currentUser ['programs'], str) and self.currentUser ['programs'] is not None:
             parsed = json.loads(self.currentUser ['programs'])
             if 'programs' in parsed and isinstance(parsed ['programs'], list) and parsed['programs'] is not None:

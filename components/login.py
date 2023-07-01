@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import *
 sys.path.append("client")
 current_dir = os.path.dirname(os.path.abspath(__file__))
 from client import Client
+import client
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -182,7 +183,7 @@ class LoginWindow(QDialog):
                 self.settings.remove("username")
                 self.settings.remove("password")
                 self.settings.remove("remember_me")
-
+            client.user = {"username": username}
             self.accept()
         else:
             QMessageBox.warning(self, "Validation Error", "Username or password incorrect.")

@@ -7,7 +7,8 @@ from mainWindows.programsTab import ProgramsTab
 from mainWindows.userTab import UserTab
 from mainWindows.notificationsTab import NotificationsTab
 from components.login import LoginWindow
-
+import client
+from PyQt5.QtGui import QIcon
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QDialog, QMainWindow, QPushButton
@@ -42,6 +43,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
         self.setCentralWidget(self.tabWidget)
+        user_icon = QtWidgets.QLabel()
+        user_icon.setPixmap(QIcon("user.png").pixmap(16, 16))  # Replace "user_icon.png" with your icon file
+        
+        username_label = QtWidgets.QLabel()
+        username_label.setText(client.user['username'])  # Replace client.user['username'] with your actual username
+        
+        self.statusBar().addPermanentWidget(user_icon)
+        self.statusBar().addPermanentWidget(username_label)
 
 if __name__ == "__main__":
     import sys

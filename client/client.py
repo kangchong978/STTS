@@ -4,6 +4,8 @@ from tqdm import tqdm
 from PyQt5.QtWidgets import QApplication, QProgressDialog
 import json
 
+user = None
+
 # Load settings from settings.json
 with open('settings.json', 'r') as f:
     config = json.load(f)
@@ -46,6 +48,16 @@ class Client:
         cursor.execute("SELECT * FROM users")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Users')
+    
+    @staticmethod
+    def getUser(username):
+        cursor.execute(f'SELECT * FROM users WHERE username = "{username}"')
+        results = cursor.fetchall()
+        parsed = Client.parseToDictWithProgress(results, 'Fetching Users')
+        if len(parsed) > 0:
+            return parsed[0]
+        else: 
+            return None
 
     @staticmethod
     def getNotifications():
