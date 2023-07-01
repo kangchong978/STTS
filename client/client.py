@@ -82,7 +82,7 @@ class Client:
         return Client.parseToDictWithProgress(results, 'Fetching Approval')
 
     @staticmethod
-    def getDepartment():
+    def getDepartments():
         cursor.execute("SELECT * FROM department")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Departments')
