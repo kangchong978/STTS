@@ -39,7 +39,7 @@ class Client:
 
     @staticmethod
     def getPrograms():
-        cursor.execute("SELECT * FROM programs")
+        cursor.execute("SELECT * FROM programs WHERE enable = 1")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Programs')
 
@@ -206,3 +206,46 @@ class Client:
             return True
         else:
             return False
+    @staticmethod
+    def updateProgram(id, data):
+         
+        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s " \
+            "WHERE id = %s"
+        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], id)
+        
+        Client.executeWithProgress(query, values, 'Updating program')
+        
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+    @staticmethod
+    def removeProgram(id, data):
+         
+        query = "UPDATE programs SET enable = %s " \
+            "WHERE id = %s"
+        values = (data['enable'], id)
+        
+        Client.executeWithProgress(query, values, 'Removing program')
+        
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+        
+    @staticmethod
+    def addNewProgram(data):
+        query = "INSERT INTO programs (title) " \
+            "VALUES (%s)"
+        values = [data['title']]
+    
+        Client.executeWithProgress(query, values, 'Adding new program')
+         
+        if cursor.rowcount > 0:
+            return cursor.lastrowid
+        else:
+            return None

@@ -196,8 +196,9 @@ class ProgramsTab(QWidget):
             for item in data:
                 programsApprovementStat = None
                 if isinstance(self.userPrograms, list) and len(self.userPrograms) > 0:
-                    found_items = [a for a in self.userPrograms if a.get('id')== item['id']][0]
-                    item["enrollStatusCode"] = found_items["approvementStatusCode"]
+                    found_items = [a for a in self.userPrograms if a.get('id')== item['id']]
+                    if len(found_items) > 0:
+                        item["enrollStatusCode"] = found_items[0]["approvementStatusCode"]
                     pass
                     
                 widget = self.createWidget(item)

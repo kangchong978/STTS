@@ -56,8 +56,10 @@ class AddProgramTab(QWidget):
         self.gridLayout_2.addWidget(self.titleLineText)
         self.graphicsView_12 =QLabel(self.widget_11)
         self.graphicsView_12.setObjectName("graphicsView_12")
-        # self.graphicsView_12.setFixedHeight(250)
         self.gridLayout_2.addWidget(self.graphicsView_12 )
+        self.graphicsView_12_url =QLabel(self.widget_11)
+        self.graphicsView_12_url.setObjectName("graphicsView_12_url")
+        self.gridLayout_2.addWidget(self.graphicsView_12_url )
         self.uploadPushButton = QPushButton(self.widget_11)
         self.uploadPushButton.setObjectName("uploadPushButton")
         self.uploadPushButton.setFixedWidth(150)
@@ -117,7 +119,7 @@ class AddProgramTab(QWidget):
         self.verticalLayout_33.addWidget(scrollArea)
         self.horizontalLayout_19.addWidget(self.widget_11)
         self.pushButton_10 = QPushButton(self.widget_11)
-        self.pushButton_10.setEnabled(True)
+        # self.pushButton_10.setEnabled(True)
         self.pushButton_10.setObjectName("pushButton_10")
         self.verticalLayout_33.addWidget(self.pushButton_10)
 
@@ -152,6 +154,8 @@ class AddProgramTab(QWidget):
         self.label_102.setText("Department")
         self.label_103.setText("Participants")
         self.pushButton_10.setText("Save")
+        # self.pushButton_10.setEnabled(False)
+        
         self.searchLineEdit.setPlaceholderText("Search")
         self.titleLineText.setPlaceholderText("Input program`s title here ...")
         self.subtitleLineText.setPlaceholderText("Input program`s discription here ...")
@@ -175,8 +179,74 @@ class AddProgramTab(QWidget):
         self.rightAlignAction.triggered.connect(self.handleRightAlignClicked)
         self.colorAction.triggered.connect(self.handleTextColorClicked)
         self.uploadPushButton.pressed.connect(self.handleUploadImageClicked)
+        self.pushButton_10.pressed.connect(self.saveChangeCurrentProgram)
+        self.addProgramsButton.pressed.connect(self.addNewProgramHandler)
+        self.removeProgramsButton.pressed.connect(self.removeProgramHandler)
         
         
+        
+    def saveChangeCurrentProgram(self):
+        title = self.titleLineText.text()
+        imageUrl = self.graphicsView_12_url.text()
+        description = self.subtitleLineText.toHtml()
+        datetimeValue = self.dateTimeEdit.dateTime()
+        timestamp = datetimeValue.toSecsSinceEpoch()
+        location = self.locationLineText.text()
+        id = self.programsListWidget.currentItem().data(Qt.UserRole)['id']
+        formData = {
+            "title": title,
+            "imageUrl": imageUrl,
+            "description": description,
+            "timestamp": timestamp,
+            "location": location
+        }
+        result =  Client.updateProgram(id,formData)
+        if result == True:
+            previousIndex = self.programsListWidget.currentRow()
+            self.updateDisplayProgramsList(Client.getPrograms())
+            self.programsListWidget.setCurrentRow(previousIndex)
+        
+    def addNewProgramHandler(self):
+        result = self.addNewProgramDialog()
+        if result != None:
+            newId = Client.addNewProgram(result)
+            self.updateDisplayProgramsList(Client.getPrograms())
+            self.pushButton_10.setEnabled(False)
+            
+            pass
+        
+    def removeProgramHandler(self):
+        item = None
+        try:
+            item = self.programsListWidget.currentItem().data(Qt.UserRole)
+        except:
+            print('An exception occurred')
+        if item != None:
+            result = self.removeProgramDialog(f'{item["title"]}')
+            if result == True:
+                result =  Client.removeProgram(item["id"],{"enable":0})
+                self.updateDisplayProgramsList(Client.getPrograms())
+                self.pushButton_10.setEnabled(False)
+                pass
+        
+    def removeProgramDialog(self, title):
+        # Show a confirmation dialog
+        confirm_dialog = QMessageBox()
+        confirm_dialog.setIcon(QMessageBox.Question)
+        confirm_dialog.setWindowTitle("Confirm Removal")
+        confirm_dialog.setText("Are you sure you want to remove this program?")
+        confirm_dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm_dialog.setDefaultButton(QMessageBox.No)
+        
+        # Execute the dialog and check the user's response
+        response = confirm_dialog.exec()
+        
+        if response == QMessageBox.Yes:
+            # User confirmed the removal
+            # Add your removal logic here
+            return True
+        
+        return False
        
         
     def handleSearchChanged(self,text):
@@ -199,6 +269,7 @@ class AddProgramTab(QWidget):
 
         self.updateDisplayProgramsList(filterProgramsData)
         self.handleSearchReturned()
+        self.pushButton_10.setEnabled(False)
         
     def updateDepartmentsList(self, data):
         model = QStandardItemModel(self.listView_5)
@@ -304,6 +375,7 @@ class AddProgramTab(QWidget):
             image = QPixmap(filename)
             scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
             self.graphicsView_12.setPixmap(scaledImage)
+            self.graphicsView_12_url.setText(filename)
 
     
     def updateDisplayProgramsList(self, data):
@@ -320,7 +392,11 @@ class AddProgramTab(QWidget):
         pass
         
         
-    def handleSearchReturned(self, index = 0):
+    def handleSearchReturned(self, index = None):
+        if index != None:
+            self.pushButton_10.setEnabled(True)
+        else:
+            index = 0
         if self.programsListWidget.count() > 0 and index >= 0:
             data = self.programsListWidget.item(index).data(Qt.UserRole)
             if(isinstance(data, object)):
@@ -356,7 +432,11 @@ class AddProgramTab(QWidget):
                 location = item['location']
                 pass
             if 'users' in item and isinstance(item['users'], str) and item['users'] != None:
-                parsed_json = json.loads(item['users'])
+                parsed_json = {}
+                try:
+                    parsed_json = json.loads(item['users'])
+                except:
+                    pass
                 if 'users' in parsed_json and isinstance(parsed_json['users'], list) and parsed_json['users'] != None:
                     enrolledUsers = parsed_json['users']
                 pass
@@ -372,6 +452,7 @@ class AddProgramTab(QWidget):
             
             scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
             self.graphicsView_12.setPixmap(QPixmap(scaledImage))
+            self.graphicsView_12_url.setText(imageUrl)
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
             self.updateParticipantsList(enrolledUsers)
@@ -385,8 +466,55 @@ class AddProgramTab(QWidget):
             pass
         pass
     
+    def addNewProgramDialog(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Add New Program")
+        
+        # Create layout
+        layout = QVBoxLayout()
+        
+        # Create title label and input field
+        titleLabel = QLabel("Title:")
+        titleLineEdit = QLineEdit()
+        
+        # Add title label and input field to the layout
+        layout.addWidget(titleLabel)
+        layout.addWidget(titleLineEdit)
+        
+        # Create OK and Cancel buttons
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(dialog.accept)
+        buttonBox.rejected.connect(dialog.reject)
+        
+        # Add button box to the layout
+        layout.addWidget(buttonBox)
+        
+        # Set the layout for the dialog
+        dialog.setLayout(layout)
+        
+        # Show the dialog and wait for user input
+        while True:
+            if dialog.exec() == QDialog.Accepted:
+                # Retrieve the title value from the input field
+                title = titleLineEdit.text()
+                
+                data = {"title": title}
+                
+                # Check if the title is empty
+                if title.strip() == "":
+                    # Show an error message and continue the loop
+                    QMessageBox.warning(dialog, "Error", "Title is required. Please enter a title.")
+                    continue
+                
+                # Perform any further processing or validation here
+                
+                return data
+            
+            return None
+    
     
 class CheckBoxDelegate(QStyledItemDelegate):
         def initStyleOption(self, option, index):
             super().initStyleOption(option, index)
             option.features |= QStyleOptionViewItem.HasCheckIndicator
+            
