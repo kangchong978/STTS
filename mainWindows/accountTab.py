@@ -33,6 +33,9 @@ class AccountTab(QWidget):
         self.pushButton_64 = QPushButton(self.widget_4)
         self.pushButton_64.setObjectName("pushButton_64")
         self.horizontalLayout_5.addWidget(self.pushButton_64)
+        self.pushButton_65 = QPushButton(self.widget_4)
+        self.pushButton_65.setObjectName("pushButton_65")
+        self.horizontalLayout_5.addWidget(self.pushButton_65)
         self.horizontalLayout_5.addWidget(self.frame_6)
 
         self.verticalLayout_7.addWidget(self.widget_4)
@@ -52,11 +55,20 @@ class AccountTab(QWidget):
         self.verticalLayout_7.addWidget(self.listView)
         self.label_1.setText("Company Amount")
         self.pushButton_64.setText("Update Amount")
+        self.pushButton_65.setText("Refresh")
+        
         self.searchLineEdit.setPlaceholderText("Search")
         self.updateAccountDetails()
         self.updateDisplayApprovementList(self.progaramsData)
         self.searchLineEdit.textChanged.connect(self.searchPrograms)  # Connect Search bar signal to function
         self.pushButton_64.clicked.connect(self.showUpdateAmountDialog)  # Connect button signal to dialog function
+        self.pushButton_65.clicked.connect(self.refreshListAndAccount)  # Connect button signal to dialog function
+        
+    def refreshListAndAccount(self):
+        self.accountData = Client.getAccount()
+        self.updateAccountDetails()
+        self.progaramsData = Client.getPrograms()
+        self.updateDisplayApprovementList(self.progaramsData)
         
     def updateAccountDetails(self):
         data =  self.accountData
@@ -118,11 +130,9 @@ class AccountTab(QWidget):
         paymentRejectButton = QPushButton(widget)
         paymentRejectButton.setObjectName("paymentRejectButton")
         paymentRejectButton.setFixedWidth(100)
-        
+        status = QLabel(widget)
         paymentDoneButton.setText("Done")
         paymentRejectButton.setText("Reject")
-        
-      
         
         programTitle = "Unknown"
         programTotalCost = "0.00"
@@ -140,29 +150,88 @@ class AccountTab(QWidget):
         
         horizontalLayout.addWidget(programCostLabel)
         horizontalLayout.addWidget(programNameLabel)
-        horizontalLayout.addWidget(paymentDoneButton)
-        horizontalLayout.addWidget(paymentRejectButton)
+        if item['paymentStatus'] == 0:
+            status.setHidden(True)
+            horizontalLayout.addWidget(paymentDoneButton)
+            horizontalLayout.addWidget(paymentRejectButton)
+        elif item['paymentStatus'] == 1: 
+            status.setHidden(False)
+            status.setText("Payment Done")
+            paymentDoneButton.setHidden(True)
+            paymentRejectButton.setHidden(True)
+            horizontalLayout.addWidget(status)
+        elif item['paymentStatus'] == 2: 
+            status.setHidden(False)
+            status.setText("Payment Rejected")
+            paymentDoneButton.setHidden(True)
+            paymentRejectButton.setHidden(True)
+            horizontalLayout.addWidget(status)
         horizontalLayout.setStretch(1,2)
         
+        paymentDoneButton.pressed.connect(lambda: self.updatePaymentDone(item))
+        paymentRejectButton.pressed.connect(lambda: self.updatePaymentDenied(item.get('id')))
+        
         return widget
+    
+    def updatePaymentDone(self, item):
+        self.showPaymentDoneDialog(item)
+        Client.updateProgramPayment(item['id'],{"paymentStatus":1})
+        self.updateDisplayApprovementList(Client.getPrograms())
+        pass
+    
+    def updatePaymentDenied(self, id):
+        Client.updateProgramPayment(id,{"paymentStatus":2})
+        self.updateDisplayApprovementList(Client.getPrograms())
+        pass
     
     def showUpdateAmountDialog(self):
         currentAmount = self.accountData.get("amount", 0.0)
         newAmount, ok = QInputDialog.getDouble(self, "Update Amount", "Enter new amount:", currentAmount, decimals=2)
         if ok:
-            #TODO
-            # Save the new amount
             self.accountData["amount"] = newAmount
-            # self.updateAccountDetails()
-            # Update the account data on the server
             result =  Client.updateAccount(self.accountData)
-            # print(result)
             if result == True:
                 self.accountData = Client.getAccount()
                 self.updateAccountDetails()
+    
+    def showPaymentDoneDialog(self, item):
+        currentAmount = self.accountData.get("amount", 0.0)
+        programCost = item.get("cost", 0.0)
+
+        remainingAmount = currentAmount - programCost
+
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setWindowTitle("Payment Confirmation")
+        msgBox.setText(f"The cost of the program is: ${programCost:.2f}")
+        msgBox.setInformativeText(f"The remaining amount will be: ${remainingAmount:.2f}")
+        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+
+        if remainingAmount < 0:
+            msgBox.setDisabled(True)
+            msgBox.setInformativeText("Insufficient funds. Cannot proceed with the payment.")
+        else:
+            msgBox.setDefaultButton(QMessageBox.Ok)
+
+        response = msgBox.exec_()
+        if response == QMessageBox.Ok and remainingAmount >= 0:
+            # Proceed with the payment
+            newAmount = remainingAmount
+            previousAmount = currentAmount
+            programId = item.get("id")
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            accountData = {
+                "amount": newAmount,
+                "previousAmount": previousAmount,
+                "programId": programId,
+                "timestamp": timestamp,
+            }
+            result = Client.updateAccount(accountData)
+            if result:
+                self.accountData = Client.getAccount()
+                self.updateAccountDetails()
                 
-            
-            
 class CustomWidget(QWidget):
     def sizeHint(self):
         return QSize(self.width(), self.height())
