@@ -2,7 +2,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from client import Client
-
 class ApprovalTab(QtWidgets.QWidget):
     def __init__(self):
         super(ApprovalTab, self).__init__()
@@ -127,7 +126,7 @@ class ApprovalTab(QtWidgets.QWidget):
             approval_status_label.setText("Declined")
             
             # Get the userID associated with the selected user
-            user_id_label = user_widget.layout().itemAt(0).widget()
+            user_id_label = user_widget.layout().itemAt(1).widget()
             user_id = user_id_label.text()
             
             # Update the approval status in the database
@@ -149,15 +148,23 @@ class ApprovalTab(QtWidgets.QWidget):
             approval_status_label.setText("Approved")
             
             # Get the userID associated with the selected user
-            user_id_label = user_widget.layout().itemAt(0).widget()
+            user_id_label = user_widget.layout().itemAt(1).widget()
             user_id = user_id_label.text()
-            
+            programId_label = user_widget.layout().itemAt(2).widget()
+            programId = programId_label.text()
             # Update the approval status in the database
             approval_data = {
                 "id": int(user_id),
                 "approveStatus": 2  # Set the status to 2 for Approved
             }
             Client.updateApproval(approval_data)
+            notificationData = {
+                "userid":int(user_id),
+                "type":0,
+                "innerType":0,
+                "programId": int(programId),
+            }
+            Client.addNewnotification(int(user_id), notificationData)
             
             # Output "Approved" if the approveStatus is 2
             if approval_data["approveStatus"] == 2:

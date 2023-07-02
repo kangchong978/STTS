@@ -3,6 +3,7 @@ import mysql.connector
 from tqdm import tqdm
 from PyQt5.QtWidgets import QApplication, QProgressDialog
 import json
+import time
 
 user = None
 
@@ -299,10 +300,33 @@ class Client:
         query = "UPDATE programs SET paymentStatus = %s WHERE id = %s"
         values = (data['paymentStatus'], id)
 
-        cursor.execute(query, values)
-        connection.commit()
-
+        # cursor.execute(query, values)
+        # connection.commit()
+        Client.executeWithProgress(query, values, 'Editing User')  
         if cursor.rowcount > 0:
             return True
         else:
             return False
+        
+    def addNewnotification(userid, data):
+        query = "INSERT INTO notifications (userid, type, innerType, timestamp, programId) VALUES (%s, %s, %s, %s, %s)"
+        values = (userid, data['type'], data['innerType'],   int(time.time() * 1000), data['programId'])
+
+        Client.executeWithProgress(query, values, 'Editing User')  
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+    def addNewnotification(user_ids, data):
+        query = "INSERT INTO notifications (userid, type, innerType, timestamp, programId) VALUES (%s, %s, %s, %s, %s)"
+        current_timestamp = int(time.time() * 1000)
+        success_count = 0
+
+        for user_id in user_ids:
+            values = (user_id, data['type'], data['innerType'], current_timestamp, data['programId'])
+            success = Client.executeWithProgress(query, values, 'Editing User')
+            if success:
+                success_count += 1
+
+        return success_count == len(user_ids)
