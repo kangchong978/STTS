@@ -7,6 +7,10 @@ class ApprovalTab(QtWidgets.QWidget):
         super(ApprovalTab, self).__init__()
 
         self.approvalData = Client.getApproval()
+        self.users = Client.getUsers()
+        self.programs = Client.getPrograms()
+        
+        
 
         self.setObjectName("tab_2")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self)
@@ -25,6 +29,10 @@ class ApprovalTab(QtWidgets.QWidget):
         self.frame_4.setObjectName("frame_4")
         self.horizontalLayout_2.addWidget(self.frame_4)
 
+        self.pushButton_1 = QtWidgets.QPushButton(self)
+        self.pushButton_1.setObjectName("pushButton_1")
+        self.horizontalLayout_2.addWidget(self.pushButton_1)
+        
         self.pushButton_5 = QtWidgets.QPushButton(self)
         self.pushButton_5.setObjectName("pushButton_5")
         self.horizontalLayout_2.addWidget(self.pushButton_5)
@@ -38,16 +46,22 @@ class ApprovalTab(QtWidgets.QWidget):
         self.verticalLayout_5.addWidget(self.listWidget_4)
 
         self.lineEdit_17.setPlaceholderText("Search")
+        self.pushButton_1.setText("Refresh")
         self.pushButton_5.setText("Decline")
         self.pushButton_4.setText("Approve")
 
+        self.pushButton_1.clicked.connect(self.handleRefresh)
         self.pushButton_5.clicked.connect(self.declineSelectedUser)
         self.pushButton_4.clicked.connect(self.approveSelectedUser)
         self.lineEdit_17.textChanged.connect(self.searchByProgramID)
 
-        self.DisplayApprovalList(self.approvalData)
+        self.displayApprovalList(self.approvalData)
 
-    def DisplayApprovalList(self, data):
+    def handleRefresh(self):
+        self.approvalData = Client.getApproval()
+        self.displayApprovalList(self.approvalData)        
+        pass 
+    def displayApprovalList(self, data):
         self.listWidget_4.clear()
         if isinstance(data, list) and len(data) > 0:
             for item in data:
@@ -57,6 +71,18 @@ class ApprovalTab(QtWidgets.QWidget):
                 listItem.setSizeHint(widget.sizeHint())
                 self.listWidget_4.addItem(listItem)
                 self.listWidget_4.setItemWidget(listItem, widget)
+                
+    def getUserUsername(self, userId):
+        for user in self.users:
+            if user.get('id') == userId and 'username' in user:
+                return user['username']
+        return None
+    
+    def getProgramName(self, programId):
+        for program in self.programs:
+            if program.get('id') == programId and 'title' in program:
+                return program['title']
+        return None
 
     def createWidget(self, item):
         widget = QWidget()
@@ -76,16 +102,22 @@ class ApprovalTab(QtWidgets.QWidget):
             IDtext = f"{item['id']}"
 
         id.setText(IDtext)
+        id.setHidden(True)
         id.setFixedWidth(100)
         horizontalLayout.addWidget(id)
 
         userId = QLabel(widget)
         userId.setObjectName("userId")
-        userIdtext = "Unknown"
+        userIdText = "Unknown"
         if 'userId' in item and isinstance(item['userId'], int) and item['userId'] is not None:
-            userIdtext = f"{item['userId']}"
+            a = item['userId']
+            username = self.getUserUsername(a)
+            if username:
+                userIdText = f"{username}"
+            else:
+                userIdText = str(a)
 
-        userId.setText(userIdtext)
+        userId.setText(userIdText)
         userId.setFixedWidth(100)
         horizontalLayout.addWidget(userId)
 
@@ -93,68 +125,77 @@ class ApprovalTab(QtWidgets.QWidget):
         programId.setObjectName("programId")
         programIdtext = "Unknown"
         if 'programId' in item and isinstance(item['programId'], int) and item['programId'] is not None:
-            programIdtext = f"{item['programId']}"
+            a = item['programId']
+            programName = self.getProgramName(a)
+            if programName:
+                programIdtext = f"{programName}"
+            else:
+                programIdtext = str(a)
 
         programId.setText(programIdtext)
-        programId.setFixedWidth(100)
         horizontalLayout.addWidget(programId)
 
         approveStatus = QLabel(widget)
         approveStatus.setObjectName("approveStatus")
         approveStatustext = "Unknown"
         if 'approveStatus' in item and isinstance(item['approveStatus'], int) and item['approveStatus'] is not None:
-            if item['approveStatus'] == 1:
+            if item['approveStatus'] == 0:
+                approveStatustext = "Cancelled"
+            elif item['approveStatus'] == 1:
                 approveStatustext = "Pending"
-            elif item['approveStatus'] == 0:
-                approveStatustext = "Declined"
             elif item['approveStatus'] == 2:
                 approveStatustext = "Approved"
+            elif item['approveStatus'] == 3:
+                approveStatustext = "Declined"
             else:
                 approveStatustext = "Unknown"
 
         approveStatus.setText(approveStatustext)
         approveStatus.setFixedWidth(100)
         horizontalLayout.addWidget(approveStatus)
+        horizontalLayout.setStretch(1,2)
 
         return widget
 
     def declineSelectedUser(self):
         selected_items = self.listWidget_4.selectedItems()
         for item in selected_items:
-            user_widget = self.listWidget_4.itemWidget(item)
-            approval_status_label = user_widget.layout().itemAt(3).widget()
-            approval_status_label.setText("Declined")
+            # user_widget = self.listWidget_4.itemWidget(item)
+            # approval_status_label = user_widget.layout().itemAt(3).widget()
+            # approval_status_label.setText("Declined")
             
-            # Get the userID associated with the selected user
-            user_id_label = user_widget.layout().itemAt(1).widget()
-            user_id = user_id_label.text()
+            id = self.listWidget_4.currentItem().data(Qt.UserRole)['id']
+
             
-            # Update the approval status in the database
             approval_data = {
-                "id": int(user_id),
-                "approveStatus": 0  # Set the status to 0 for Declined
+                "id": int(id),
+                "approveStatus": 3  # Set the status to 3 for Declined
             }
             Client.updateApproval(approval_data)
-            
-            # Output "Declined" if the approveStatus is 0
-            if approval_data["approveStatus"] == 0:
-                print("Declined")
+            self.handleRefresh()
+            # Output "Declined" if the approveStatus is 3
+            # if approval_data["approveStatus"] == 3:
+                # print("Declined")
 
     def approveSelectedUser(self):
         selected_items = self.listWidget_4.selectedItems()
         for item in selected_items:
-            user_widget = self.listWidget_4.itemWidget(item)
-            approval_status_label = user_widget.layout().itemAt(3).widget()
-            approval_status_label.setText("Approved")
+            # user_widget = self.listWidget_4.itemWidget(item)
+            # approval_status_label = user_widget.layout().itemAt(3).widget()
+            # approval_status_label.setText("Approved")
+            
+            id = self.listWidget_4.currentItem().data(Qt.UserRole)['id']
+            user_id = self.listWidget_4.currentItem().data(Qt.UserRole)['userId']
+            programId = self.listWidget_4.currentItem().data(Qt.UserRole)['programId']
             
             # Get the userID associated with the selected user
-            user_id_label = user_widget.layout().itemAt(1).widget()
-            user_id = user_id_label.text()
-            programId_label = user_widget.layout().itemAt(2).widget()
-            programId = programId_label.text()
+            # user_id_label = user_widget.layout().itemAt(1).widget()
+            # user_id = user_id_label.text()
+            # programId_label = user_widget.layout().itemAt(2).widget()
+            # programId = programId_label.text()
             # Update the approval status in the database
             approval_data = {
-                "id": int(user_id),
+                "id": int(id),
                 "approveStatus": 2  # Set the status to 2 for Approved
             }
             Client.updateApproval(approval_data)
@@ -165,19 +206,20 @@ class ApprovalTab(QtWidgets.QWidget):
                 "programId": int(programId),
             }
             Client.addNewnotification(int(user_id), notificationData)
+            self.handleRefresh()
             
             # Output "Approved" if the approveStatus is 2
-            if approval_data["approveStatus"] == 2:
-                print("Approved")
+            # if approval_data["approveStatus"] == 2:
+                # print("Approved")
 
     def searchByProgramID(self, text):
         count = self.listWidget_4.count()
         for index in range(count):
             item = self.listWidget_4.item(index)
             user_widget = self.listWidget_4.itemWidget(item)
-            programid_label = user_widget.layout().itemAt(2).widget()
-            programid = programid_label.text()
-            if text.lower() in programid.lower():
+            program_label = user_widget.layout().itemAt(2).widget()
+            programName = program_label.text()
+            if text.lower() in programName.lower():
                 item.setHidden(False)
             else:
                 item.setHidden(True)

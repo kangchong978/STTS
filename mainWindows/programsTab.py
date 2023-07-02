@@ -293,6 +293,11 @@ class ProgramsTab(QWidget):
                         self.enrollPushButton.setEnabled(True)
                         self.enrollPushButton.clicked.connect(self.showCancelEnrollmentFormDialog)
                         pass
+                    elif item['enrollStatusCode'] == 3:
+                        self.enrollPushButton.setText("Enroll now")
+                        self.enrollPushButton.setEnabled(True)
+                        self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
+                        pass
                     else:
                         self.enrollPushButton.setText("Enroll now")
                         self.enrollPushButton.setEnabled(False)
