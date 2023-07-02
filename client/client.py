@@ -248,3 +248,30 @@ class Client:
             return cursor.lastrowid
         else:
             return None
+        
+
+    @staticmethod
+    def deleteUser(userData):
+        query = "DELETE FROM users WHERE id = %s"
+        values = (userData['id'],)
+
+        Client.executeWithProgress(query, values, 'Deleting User')
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+
+
+    @staticmethod
+    def editUser(userData):
+        query = "UPDATE users SET username = %s, departmentId = %s WHERE id = %s"
+        values = (userData['username'], userData['departmentId'], userData['id'])
+
+        Client.executeWithProgress(query, values, 'Editing User')  
+
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False

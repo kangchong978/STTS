@@ -246,6 +246,7 @@ class ProgramsTab(QWidget):
                 scaledImage = image.scaledToWidth(500, mode=Qt.SmoothTransformation)
                 self.graphicsView_3.setPixmap(QPixmap(scaledImage))
                 self.subtitleLabel.setText(subtitle)
+                self.subtitleLabel.setOpenExternalLinks(True)
                 self.dateTimeLabel.setText(dateTime)
                 self.locationLabel.setText(location)
                 if self.enrollPushButton.receivers(self.enrollPushButton.clicked) > 0:

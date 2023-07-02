@@ -203,15 +203,24 @@ class UserTab(QWidget):
                     if editUserWindow.exec_() == QDialog.Accepted:
                         updatedUserData = editUserWindow.getUserData()
                         updatedUserData['id'] = userID  # Ensure the User ID remains the same
-                        updatedWidget = self.createWidget(updatedUserData)
-                        selectedItem.setData(Qt.UserRole, updatedUserData)
-                        selectedItem.setSizeHint(updatedWidget.sizeHint())
-                        self.ListWidget.setItemWidget(selectedItem, updatedWidget)
+
+                        if Client.editUser(updatedUserData):  # Pass updatedUserData as an argument
+                            updatedWidget = self.createWidget(updatedUserData)
+                            selectedItem.setData(Qt.UserRole, updatedUserData)
+                            selectedItem.setSizeHint(updatedWidget.sizeHint())
+                            self.ListWidget.setItemWidget(selectedItem, updatedWidget)
+
+
 
     def deleteButtonClicked(self):
         selectedItem = self.ListWidget.currentItem()
         if selectedItem is not None:
-            self.ListWidget.takeItem(self.ListWidget.row(selectedItem))
+            userData = selectedItem.data(Qt.UserRole)
+            if Client.deleteUser(userData):
+                self.ListWidget.takeItem(self.ListWidget.row(selectedItem))
+
+
+
 
     def searchUsers(self):
         searchValue = self.lineEdit_4.text().strip().lower()

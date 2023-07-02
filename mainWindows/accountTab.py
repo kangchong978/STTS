@@ -62,7 +62,7 @@ class AccountTab(QWidget):
         data =  self.accountData
         totalAmount = "$ "
         if(isinstance(data, dict) and "amount" in data and isinstance(data["amount"], float)):
-            totalAmount += f'{data["amount"]}'
+            totalAmount += "{:.2f}".format(data['amount'])
             pass
         self.label_2.setText(totalAmount)
         
@@ -136,7 +136,7 @@ class AccountTab(QWidget):
     
         
         programNameLabel.setText( programTitle)
-        programCostLabel.setText( "<font color = 'red'> - $" +programTotalCost+ "</font>")
+        programCostLabel.setText( "<font color = 'red'> - $ " +programTotalCost+ "</font>")
         
         horizontalLayout.addWidget(programCostLabel)
         horizontalLayout.addWidget(programNameLabel)
