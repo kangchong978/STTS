@@ -193,15 +193,19 @@ class AddProgramTab(QWidget):
         timestamp = datetimeValue.toSecsSinceEpoch()
         location = self.locationLineText.text()
         id = self.programsListWidget.currentItem().data(Qt.UserRole)['id']
-        departments = {"departments": self.handleItemChecked(self.listView_5) }
+        departments = {"departments": self.getCheckedItemsId(self.listView_5) }
         json_departments = json.dumps(departments)
+        users = {"users": self.getCheckedItemsId(self.listWidget_24)}
+        json_users = json.dumps(users)
+        
         formData = {
             "title": title,
             "imageUrl": imageUrl,
             "description": description,
             "timestamp": timestamp,
             "location": location,
-            "departments": json_departments
+            "departments": json_departments,
+            "users": json_users
         }
         result =  Client.updateProgram(id,formData)
         if result == True:
@@ -293,8 +297,35 @@ class AddProgramTab(QWidget):
         self.listView_5.setModel(model)
         delegate = CheckBoxDelegate(self.listView_5)
         self.listView_5.setItemDelegate(delegate)
+        model.itemChanged.connect(self.handleDepartmentItemChecked)
+        
+    def updateEnrolledUsersList(self, enrolledUsers):
+        # data = self.departments
+        model = QStandardItemModel(self.listWidget_24)
+        if enrolledUsers is None:
+            return
+        self.updateParticipantsList(usersWithDetails=enrolledUsers)
+        # for index, users in enumerate(enrolledUsers):
+        #     userName = users.get('username')
+        #     if userName:
+        #         item = QStandardItem(userName)
+        #         item.setCheckable(True)
+        #         item.setCheckState(Qt.Checked)
+        #         item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        #         item.setData(users, Qt.UserRole)
+        #         model.appendRow(item)
+        # self.listWidget_24.setModel(model)
+        # delegate = CheckBoxDelegate(self.listWidget_24)
+        # self.listWidget_24.setItemDelegate(delegate)
+        # model.itemChanged.connect(self.handleDepartmentItemChecked)
+        
+    def handleDepartmentItemChecked(self):
+        users = Client.getUsersByDepartments(self.getCheckedItemsId(self.listView_5))
+        if isinstance(users, list):
+            self.updateEnrolledUsersList(users)        
+        pass
 
-    def handleItemChecked(self, listview):
+    def getCheckedItemsId(self, listview):
         # Retrieve the index of the checked item
         checked_items = []
         model = listview.model()
@@ -309,19 +340,40 @@ class AddProgramTab(QWidget):
         # Call your desired function with the checked item indices
         # your_function(checked_items)
         
-    def updateParticipantsList(self, data):
+    def updateParticipantsList(self, usersId = None, usersWithDetails = None):
+        
+        if usersId != None and isinstance(usersId, list) : 
+            data = Client.getUsersByIds(usersId)
+        else:
+            data = usersWithDetails 
+        
+        
         model = QStandardItemModel(self.listWidget_24)
+
         for user in data:
-            # TODO
-            item = QStandardItem(f"{user}")
+            username = user.get('username', 'Unknown')
+            departmentId = user.get('departmentId')
+
+            departmentName = 'Unknown'
+            if departmentId is not None:
+                department = next((dept for dept in self.departments if dept['id'] == departmentId), None)
+                if department:
+                    departmentName = department['name']
+
+            item = QStandardItem(f"{username} - {departmentName}")
             item.setCheckable(True)
-            item.setCheckState(2)
+            item.setCheckState(Qt.Checked)
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+            if departmentId is not None:
+                item.setData(user, Qt.UserRole)
+
             model.appendRow(item)
+
         self.listWidget_24.setModel(model)
         delegate = CheckBoxDelegate(self.listWidget_24)
         self.listWidget_24.setItemDelegate(delegate)
-    
+        
     def handleTextColorClicked(self):
         color = QColorDialog.getColor()
         if color.isValid():
@@ -493,7 +545,7 @@ class AddProgramTab(QWidget):
             self.graphicsView_12_url.setText(imageUrl)
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
-            self.updateParticipantsList(enrolledUsers)
+            self.updateParticipantsList(usersId= enrolledUsers)
             self.updateDepartmentsList(departments)
             
             try:

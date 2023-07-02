@@ -50,6 +50,22 @@ class Client:
         return Client.parseToDictWithProgress(results, 'Fetching Users')
     
     @staticmethod
+    def getUsersByDepartments(departments):
+        if isinstance(departments, list) and len(departments) > 0:
+            cursor.execute("SELECT * FROM users WHERE departmentId IN (%s)" % ','.join(['%s'] * len(departments)), tuple(departments))
+            results = cursor.fetchall()
+            return Client.parseToDictWithProgress(results, 'Fetching Users')
+        return []
+    
+    @staticmethod
+    def getUsersByIds(user_ids):
+        if isinstance(user_ids, list) and len(user_ids) > 0:
+            cursor.execute("SELECT * FROM users WHERE id IN (%s)" % ','.join(['%s'] * len(user_ids)), tuple(user_ids))
+            results = cursor.fetchall()
+            return Client.parseToDictWithProgress(results, 'Fetching Users')
+        return []
+
+    @staticmethod
     def getUser(username):
         cursor.execute(f'SELECT * FROM users WHERE username = "{username}"')
         results = cursor.fetchall()
@@ -209,9 +225,9 @@ class Client:
     @staticmethod
     def updateProgram(id, data):
          
-        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s " \
+        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s, users = %s" \
             "WHERE id = %s"
-        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], id)
+        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], data['users'], id)
         
         Client.executeWithProgress(query, values, 'Updating program')
         
