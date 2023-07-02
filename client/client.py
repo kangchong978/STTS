@@ -225,9 +225,9 @@ class Client:
     @staticmethod
     def updateProgram(id, data):
          
-        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s, users = %s" \
+        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s, users = %s, cost = %s"\
             "WHERE id = %s"
-        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], data['users'], id)
+        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], data['users'], data['cost'], id)
         
         Client.executeWithProgress(query, values, 'Updating program')
         

@@ -11,6 +11,8 @@ import requests
 import datetime
 import json
 import client
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class ProgramsTab(QWidget):
     def __init__(self):
@@ -35,7 +37,14 @@ class ProgramsTab(QWidget):
         self.horizontalLayout.addWidget(self.searchLineEdit)
         self.comboBox = QComboBox(self)
         self.comboBox.setObjectName("comboBox")
+        self.refreshPushButton = QPushButton(self)
+        self.refreshPushButton.setObjectName("refreshPushButton")
+        icon_path = os.path.join(current_dir, "Refresh_icon.svg.png")
+        self.refreshPushButton.setIcon(QIcon(icon_path))
+        self.refreshPushButton.clicked.connect(self.handleSearchChanged)
         self.horizontalLayout.addWidget(self.comboBox)
+        self.horizontalLayout.addWidget(self.refreshPushButton)
+
         self.verticalLayout_3.addLayout(self.horizontalLayout)
         self.programsListWidget = QListWidget(self)
         self.programsListWidget.setObjectName("programsListWidget")
@@ -93,12 +102,14 @@ class ProgramsTab(QWidget):
         self.enrollPushButton = QPushButton(self)
         self.enrollPushButton.setObjectName("enrollPushButton")
         self.verticalLayout_9.addWidget(self.enrollPushButton)
+
         self.horizontalLayout_2.addLayout(self.verticalLayout_9)
         self.horizontalLayout_2.setStretch(1, 2)
         
         self.programsListWidget.currentRowChanged.connect(self.handleSearchReturned)
         self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
         self.searchLineEdit.returnPressed.connect(self.handleSearchReturned)
+        self.refreshPushButton.pressed.connect(self.handleSearchChanged)
         
         self.searchLineEdit.setPlaceholderText("Search")
         self.userPrograms = self.getClientEnrolledPrograms()
@@ -110,16 +121,14 @@ class ProgramsTab(QWidget):
         self.comboBox.currentIndexChanged.connect(self.handleComboBoxSelection)
     
     
-    
-    def handleSearchChanged(self,text):
-        self.filterText = text
+    def handleSearchChanged(self):
+        self.programsData = Client.getPrograms()
         self.filterPrograms()
        
     def handleComboBoxSelection(self, index):
         self.filerOption = index
         self.filterPrograms()
 
-    
     def filterPrograms(self):
         text = self.filterText
         filterProgramsData = self.programsData

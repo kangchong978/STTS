@@ -46,6 +46,8 @@ class AddProgramTab(QWidget):
         self.horizontalLayout_19.addWidget(self.widget_8)
         self.widget_11 = QWidget(self)
         self.widget_11.setObjectName("widget_11")
+        self.amountLineEdit = QLineEdit(self.widget_11)
+        self.amountLineEdit.setObjectName("amountLineEdit")
         self.verticalLayout_33 = QVBoxLayout(self.widget_11)
         self.verticalLayout_33.setSizeConstraint(QLayout.SetMaximumSize)
         self.verticalLayout_33.setObjectName("verticalLayout_33")
@@ -146,6 +148,7 @@ class AddProgramTab(QWidget):
         self.verticalLayout_114.addWidget(self.listView_5)
         self.horizontalLayout_23.addLayout(self.verticalLayout_114)
         self.gridLayout_2.addLayout(self.horizontalLayout_23 )
+        self.gridLayout_2.addWidget(self.amountLineEdit)
         # self.gridLayout_2.setStretch(3, 1)
         
         self.uploadPushButton.setText("Upload Image")
@@ -163,6 +166,7 @@ class AddProgramTab(QWidget):
         self.locationLineText.setPlaceholderText("Input program`s location here ...")
         self.fontSizeComboBox.addItems(self.suggestionFontSizes)
         self.fontSizeComboBox.setCurrentText("13")
+        self.amountLineEdit.setPlaceholderText("Input amount here")
 
         self.updateDisplayProgramsList(self.programsData)
         self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
@@ -184,7 +188,6 @@ class AddProgramTab(QWidget):
         self.removeProgramsButton.pressed.connect(self.removeProgramHandler)
         
         
-        
     def saveChangeCurrentProgram(self):
         title = self.titleLineText.text()
         imageUrl = self.graphicsView_12_url.text()
@@ -197,6 +200,9 @@ class AddProgramTab(QWidget):
         json_departments = json.dumps(departments)
         users = {"users": self.getCheckedItemsId(self.listWidget_24)}
         json_users = json.dumps(users)
+        amount = float(self.amountLineEdit.text() or 0)
+
+
         
         formData = {
             "title": title,
@@ -205,7 +211,8 @@ class AddProgramTab(QWidget):
             "timestamp": timestamp,
             "location": location,
             "departments": json_departments,
-            "users": json_users
+            "users": json_users,
+            "cost": amount
         }
         result =  Client.updateProgram(id,formData)
         if result == True:
