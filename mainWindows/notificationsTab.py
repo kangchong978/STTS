@@ -67,7 +67,7 @@ class NotificationsTab(QWidget):
         if isinstance(item, dict):
             if 'reached' in item and isinstance(item['reached'], int) and item['reached'] != None:
                 if item['reached'] == 0:
-                    badge = "<font color='red'>⚫ </font>"
+                    badge = "<font color='red'>* </font>"
                 pass
             if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] is not None:
                 timestamp = item['timestamp']
