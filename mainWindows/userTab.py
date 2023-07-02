@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 import sys
 
@@ -7,9 +7,8 @@ from client import Client
 
 
 class AddUserDataWindow(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, isAdd = False):
         super(AddUserDataWindow, self).__init__(parent)
-
         self.setWindowTitle("Add User Data")
         self.setWindowModality(Qt.ApplicationModal)
 
@@ -17,7 +16,10 @@ class AddUserDataWindow(QDialog):
 
         self.lineEditUserID = QLineEdit(self)
         self.lineEditUserID.setObjectName("lineEditUserID")
-        self.lineEditUserID.setPlaceholderText("User ID")
+        if isAdd == True:
+            self.lineEditUserID.setHidden(True)
+        
+        # self.lineEditUserID.setPlaceholderText("User ID")
         layout.addWidget(self.lineEditUserID)
 
         self.lineEditUsername = QLineEdit(self)
@@ -25,10 +27,9 @@ class AddUserDataWindow(QDialog):
         self.lineEditUsername.setPlaceholderText("Username")
         layout.addWidget(self.lineEditUsername)
 
-        self.lineEditDepartment = QLineEdit(self)
-        self.lineEditDepartment.setObjectName("lineEditDepartment")
-        self.lineEditDepartment.setPlaceholderText("Department ID (integer)")
-        layout.addWidget(self.lineEditDepartment)
+        self.comboBoxDepartment = QComboBox(self)
+        self.comboBoxDepartment.setObjectName("comboBoxDepartment")
+        layout.addWidget(self.comboBoxDepartment)
 
         buttonBox = QDialogButtonBox(self)
         buttonBox.setOrientation(Qt.Horizontal)
@@ -37,18 +38,28 @@ class AddUserDataWindow(QDialog):
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
 
+        self.populateDepartmentComboBox()  # Populate the department combo box
+
+    def populateDepartmentComboBox(self):
+        departments = Client.getDepartments()
+        for department in departments:
+            departmentName = department.get('name')
+            departmentId = department.get('id')
+            if departmentName and departmentId:
+                self.comboBoxDepartment.addItem(departmentName, departmentId)
+    
     def getUserData(self):
-        userID = self.lineEditUserID.text()
+        
         username = self.lineEditUsername.text()
-        departmentId = self.lineEditDepartment.text()
-        # Convert the departmentId ID to an integer
-        departmentId = int(departmentId) if departmentId.isdigit() else None
+        departmentId = self.comboBoxDepartment.currentData()
+        departmentId = int(departmentId) if isinstance(departmentId, int) else None
 
         return {
-            'id': int(userID),
+            # 'id': int(userID),
             'username': username,
             'departmentId': departmentId
         }
+
 
 
 class UserTab(QWidget):
@@ -56,7 +67,9 @@ class UserTab(QWidget):
         super(UserTab, self).__init__()
 
         self.usersData = Client.getUsers()
+        self.departments = Client.getDepartments()
 
+        
         self.setObjectName("UserTab")
         self.verticalLayout_2 = QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -164,7 +177,9 @@ class UserTab(QWidget):
         departmentId.setObjectName("departmentId")
         departmenttext = "Unknown"
         if 'departmentId' in item and isinstance(item['departmentId'], int) and item['departmentId'] is not None:
-            departmenttext = f"{item['departmentId']}"
+            department = next((dept for dept in self.departments if dept['id'] == item['departmentId']), None)
+            if department:
+                departmenttext = department['name']
 
         departmentId.setText(departmenttext)
         departmentId.setFixedWidth(100)
@@ -173,18 +188,12 @@ class UserTab(QWidget):
         return widget
 
     def addButtonClicked(self):
-        addUserWindow = AddUserDataWindow(self)
+        addUserWindow = AddUserDataWindow(self, isAdd=True)
         if addUserWindow.exec_() == QDialog.Accepted:
             newUserData = addUserWindow.getUserData()
             if Client.insertUser(newUserData):
-                widget = self.createWidget(newUserData)
-                listItem = QListWidgetItem()
-                listItem.setData(Qt.UserRole, newUserData)
-                listItem.setSizeHint(widget.sizeHint())
-                self.ListWidget.addItem(listItem)
-                self.ListWidget.setItemWidget(listItem, widget)
-                self.usersData.append(newUserData)  # Update the local data
-
+                self.updateDisplayUsersList(Client.getUsers())
+                
     def editButtonClicked(self):
         selectedItem = self.ListWidget.currentItem()
         if selectedItem is not None:
@@ -198,7 +207,7 @@ class UserTab(QWidget):
                     editUserWindow.lineEditUserID.setEnabled(False)  # Disable editing of User ID
                     editUserWindow.lineEditUserID.setText(str(userID))
                     editUserWindow.lineEditUsername.setText(userData.get('username'))
-                    editUserWindow.lineEditDepartment.setText(str(userData.get('departmentId')))  # Set the departmentId value
+                    editUserWindow.comboBoxDepartment.setCurrentIndex(editUserWindow.comboBoxDepartment.findData(userData.get('departmentId'))) 
 
                     if editUserWindow.exec_() == QDialog.Accepted:
                         updatedUserData = editUserWindow.getUserData()

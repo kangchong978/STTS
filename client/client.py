@@ -192,8 +192,8 @@ class Client:
 
     @staticmethod
     def insertUser(userData):
-        query = "INSERT INTO users (id, username, departmentId) VALUES (%s, %s, %s)"
-        values = (userData['id'], userData['username'], userData['departmentId'])
+        query = "INSERT INTO users ( username, departmentId) VALUES ( %s, %s)"
+        values = ( userData['username'], userData['departmentId'])
 
         Client.executeWithProgress(query, values, 'Inserting User')
 
