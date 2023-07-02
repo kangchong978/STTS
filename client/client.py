@@ -216,7 +216,7 @@ class Client:
         # Assuming the password is stored in the database as a hash, compare it with the provided password
         # You may need to adapt this part based on how passwords are stored and hashed in your database
         # Assuming the password is stored in the second column (index 1) of the query result
-        stored_password = result[1]
+        stored_password = result[2]
 
         if stored_password == password:
             return True
@@ -287,6 +287,21 @@ class Client:
         Client.executeWithProgress(query, values, 'Editing User')  
 
 
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+    
+    def updateProgramPayment(id, data):
+        # 0(pending), 1(approved), 2(rejected)
+         
+        query = "UPDATE programs SET paymentStatus = %s" \
+            "WHERE id = %s"
+        values = (data['paymentStatus'], id)
+        
+        Client.executeWithProgress(query, values, 'Updating payment program')
+        
         if cursor.rowcount > 0:
             return True
         else:
