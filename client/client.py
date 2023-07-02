@@ -295,13 +295,13 @@ class Client:
     
     def updateProgramPayment(id, data):
         # 0(pending), 1(approved), 2(rejected)
-         
-        query = "UPDATE programs SET paymentStatus = %s" \
-            "WHERE id = %s"
+        
+        query = "UPDATE programs SET paymentStatus = %s WHERE id = %s"
         values = (data['paymentStatus'], id)
-        
-        Client.executeWithProgress(query, values, 'Updating payment program')
-        
+
+        cursor.execute(query, values)
+        connection.commit()
+
         if cursor.rowcount > 0:
             return True
         else:
