@@ -193,12 +193,15 @@ class AddProgramTab(QWidget):
         timestamp = datetimeValue.toSecsSinceEpoch()
         location = self.locationLineText.text()
         id = self.programsListWidget.currentItem().data(Qt.UserRole)['id']
+        departments = {"departments": self.handleItemChecked(self.listView_5) }
+        json_departments = json.dumps(departments)
         formData = {
             "title": title,
             "imageUrl": imageUrl,
             "description": description,
             "timestamp": timestamp,
-            "location": location
+            "location": location,
+            "departments": json_departments
         }
         result =  Client.updateProgram(id,formData)
         if result == True:
@@ -271,16 +274,40 @@ class AddProgramTab(QWidget):
         self.handleSearchReturned()
         self.pushButton_10.setEnabled(False)
         
-    def updateDepartmentsList(self, data):
+    def updateDepartmentsList(self, departmentData):
+        data = self.departments
         model = QStandardItemModel(self.listView_5)
-        for department in data:
-            item = QStandardItem(department)
-            item.setCheckable(True)
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            model.appendRow(item)
+        if data is None:
+            return
+        for index, department in enumerate(data):
+            department_name = department.get('name')
+            if department_name:
+                item = QStandardItem(department_name)
+                item.setCheckable(True)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setData(department, Qt.UserRole)
+                model.appendRow(item)
+                # Check if department['id'] is in departmentData
+                if department['id'] in departmentData:
+                    item.setCheckState(Qt.Checked)
         self.listView_5.setModel(model)
         delegate = CheckBoxDelegate(self.listView_5)
         self.listView_5.setItemDelegate(delegate)
+
+    def handleItemChecked(self, listview):
+        # Retrieve the index of the checked item
+        checked_items = []
+        model = listview.model()
+        for index in range(model.rowCount()):
+            model_item = model.item(index)
+            if model_item.checkState() == Qt.Checked:
+                checked_items.append(model_item.data(Qt.UserRole)['id'])
+                # checked_items.append(index)
+        print(checked_items)
+        return checked_items
+
+        # Call your desired function with the checked item indices
+        # your_function(checked_items)
         
     def updateParticipantsList(self, data):
         model = QStandardItemModel(self.listWidget_24)
@@ -411,6 +438,8 @@ class AddProgramTab(QWidget):
         dateTime = QDate.currentDate()
         location = ""
         enrolledUsers = []
+        departments = []
+        
         
         
         if isinstance(data, object) and data != None:
@@ -440,6 +469,15 @@ class AddProgramTab(QWidget):
                 if 'users' in parsed_json and isinstance(parsed_json['users'], list) and parsed_json['users'] != None:
                     enrolledUsers = parsed_json['users']
                 pass
+            if 'departments' in item and isinstance(item['departments'], str) and item['departments'] != None:
+                parsed_json = {}
+                try:
+                    parsed_json = json.loads(item['departments'])
+                except:
+                    pass
+                if 'departments' in parsed_json and isinstance(parsed_json['departments'], list) and parsed_json['departments'] != None:
+                    departments = parsed_json['departments']
+                pass
                 
             self.titleLineText.setText(title)
             self.subtitleLineText.setText(subtitle)
@@ -456,8 +494,7 @@ class AddProgramTab(QWidget):
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
             self.updateParticipantsList(enrolledUsers)
-            # TODO
-            #self.updateDepartmentsList()
+            self.updateDepartmentsList(departments)
             
             try:
                 self.dateTimeEdit.setDateTime(dateTime)

@@ -209,13 +209,12 @@ class Client:
     @staticmethod
     def updateProgram(id, data):
          
-        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s " \
+        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s " \
             "WHERE id = %s"
-        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], id)
+        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], id)
         
         Client.executeWithProgress(query, values, 'Updating program')
         
-
         if cursor.rowcount > 0:
             return True
         else:
