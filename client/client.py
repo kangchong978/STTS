@@ -67,8 +67,8 @@ class Client:
         return []
 
     @staticmethod
-    def getUser(username):
-        cursor.execute(f'SELECT * FROM users WHERE username = "{username}"')
+    def getUser(id):
+        cursor.execute(f'SELECT * FROM users WHERE id = "{id}"')
         results = cursor.fetchall()
         parsed = Client.parseToDictWithProgress(results, 'Fetching Users')
         if len(parsed) > 0:
@@ -168,8 +168,8 @@ class Client:
 
     @staticmethod
     def updateUserProgramApprovements(id, programsData):
-        query = "UPDATE users SET programs = %s WHERE id = %s"
-        values = (f'{{"programs":{json.dumps(programsData)}}}', id)
+        query = "UPDATE users SET approvementIds = %s WHERE id = %s"
+        values = (f'{{"approvementIds":{json.dumps(programsData)}}}', id)
 
         Client.executeWithProgress(query, values, 'Updating User Program Approvements')
 
@@ -177,6 +177,21 @@ class Client:
             return True
         else:
             return False
+        
+    @staticmethod
+    def getUserApprovementByIds(ids):
+        if isinstance(ids,list) and len(ids):
+            query = "SELECT * FROM approval WHERE id IN (%s)"
+            id_placeholders = ','.join(['%s'] * len(ids))
+            query = query % id_placeholders
+            values = tuple(ids)
+
+            cursor.execute(query, values)
+            results = cursor.fetchall()
+            return Client.parseToDictWithProgress(results, 'Fetching Company')
+        else:
+            return []
+
 
     @staticmethod
     def updateApproval(approvalData):
@@ -220,7 +235,7 @@ class Client:
         stored_password = result[2]
 
         if stored_password == password:
-            return True
+            return result[0]
         else:
             return False
     @staticmethod
@@ -330,3 +345,27 @@ class Client:
                 success_count += 1
 
         return success_count == len(user_ids)
+    
+    def addNewApproval(data):
+        query = "INSERT INTO approval (userid, programId, approveStatus) VALUES (%s, %s, %s)"
+        values = (data['userId'], data['programId'], data['approveStatus'])
+
+        Client.executeWithProgress(query, values, 'Adding approvement request')  
+        result = cursor.fetchone()
+
+        if cursor.lastrowid:
+            return cursor.lastrowid
+        else:
+            return False
+        
+    def updateApprovalStatusById(data):
+        query = "UPDATE approval SET approveStatus = %s WHERE id = %s"
+        values = (data["approveStatus"], data["id"])
+
+        Client.executeWithProgress(query, values, 'Updating approval status')
+        connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
