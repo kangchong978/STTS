@@ -275,10 +275,10 @@ class ProgramsTab(QWidget):
                         self.enrollPushButton.clicked.connect(self.noneNoneDialog)
                         pass
                     pass
-                else:
+                elif 'enrollStatusCode' not in item:
                     self.enrollPushButton.setText("Enroll now")
-                    self.enrollPushButton.setEnabled(False)
-                    self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                    self.enrollPushButton.setEnabled(True)
+                    self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
                     pass
             pass
         pass
@@ -371,6 +371,8 @@ class ProgramsTab(QWidget):
                 statusText = "Enrolled"
             elif item['enrollStatusCode'] == 3:
                 statusText = "Rejected"
+        elif 'enrollStatusCode' not in item :
+            statusText = "Available"
 
         statusLabel.setText(statusText)
         statusLabel.setFixedWidth(100)
