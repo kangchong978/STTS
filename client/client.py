@@ -101,7 +101,7 @@ class Client:
 
     @staticmethod
     def getApproval():
-        cursor.execute("SELECT * FROM approval")
+        cursor.execute("SELECT * FROM approval ORDER BY programId DESC")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Approval')
 

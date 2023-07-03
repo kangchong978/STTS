@@ -125,11 +125,12 @@ class ProgramsTab(QWidget):
         self.comboBox.currentIndexChanged.connect(self.handleComboBoxSelection)
     
     def handleRefresh(self):
+        self.programsData = Client.getPrograms()
         self.userProgramApprovements = self.getClientEnrolledPrograms()
         self.handleSearchChanged()
     
     def handleSearchChanged(self):
-        self.programsData = Client.getPrograms()
+        # self.programsData = Client.getPrograms()
         self.filterPrograms()
        
     def handleComboBoxSelection(self, index):
@@ -137,7 +138,7 @@ class ProgramsTab(QWidget):
         self.filterPrograms()
 
     def filterPrograms(self):
-        text = self.filterText
+        text = self.searchLineEdit.text()
         filterProgramsData = self.programsData
         if self.filerOption != 0:
             stateFilter = None
@@ -179,7 +180,7 @@ class ProgramsTab(QWidget):
             filterProgramsData = result
             pass
         self.updateDisplayProgramsList(filterProgramsData)
-        self.handleSearchReturned()
+        # self.handleSearchReturned()
 
 
 
