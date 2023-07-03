@@ -10,6 +10,8 @@ sys.path.append("client")
 import json
 
 from client import Client
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
 class AddProgramTab(QWidget):
     def __init__(self):
         super(AddProgramTab, self).__init__()
@@ -29,9 +31,19 @@ class AddProgramTab(QWidget):
         self.widget_8.setMaximumWidth(250)
         self.verticalLayout_32 = QVBoxLayout(self.widget_8)
         self.verticalLayout_32.setObjectName("verticalLayout_32")
+        self.horizontalLayout_32 = QHBoxLayout(self.widget_8)
+        
         self.searchLineEdit = QLineEdit(self.widget_8)
         self.searchLineEdit.setObjectName("searchLineEdit")
-        self.verticalLayout_32.addWidget(self.searchLineEdit)
+        self.horizontalLayout_32.addWidget(self.searchLineEdit)
+        self.refreshPushButton = QPushButton(self)
+        self.refreshPushButton.setObjectName("refreshPushButton")
+        icon_path = os.path.join(current_dir, "Refresh_icon.svg.png")
+        self.refreshPushButton.setIcon(QIcon(icon_path))
+        self.horizontalLayout_32.addWidget(self.refreshPushButton)
+        self.verticalLayout_32.addLayout(self.horizontalLayout_32)
+        self.refreshPushButton.clicked.connect(self.refresh)
+        
         self.programsListWidget = QListWidget(self.widget_8)
         self.programsListWidget.setObjectName("programsListWidget")
         self.verticalLayout_32.addWidget(self.programsListWidget)
@@ -191,6 +203,8 @@ class AddProgramTab(QWidget):
 
         self.updateDisplayProgramsList(self.programsData)
         self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
+        self.searchLineEdit.returnPressed.connect(self.handleSearchReturned)
+        
         self.programsListWidget.currentRowChanged.connect(self.handleSearchReturned)
         self.fontComboBox.currentFontChanged.connect(self.handleFontChanged)
         self.fontSizeComboBox.currentTextChanged.connect(self.handleFontSizeChanged)
@@ -209,6 +223,10 @@ class AddProgramTab(QWidget):
         self.removeProgramsButton.pressed.connect(self.removeProgramHandler)
         self.amountLineEdit.textChanged.connect(self.onAmountChanged)
         
+    def refresh(self):
+        self.programsData = Client.getPrograms()
+        self.updateDisplayProgramsList( self.programsData)
+        self.filterPrograms(self.searchLineEdit.text())
         
     def onAmountChanged(self):
         # Retrieve the new amount value from the line edit
@@ -236,6 +254,7 @@ class AddProgramTab(QWidget):
         json_departments = json.dumps(departments)
         originalUsers = self.programsListWidget.currentItem().data(Qt.UserRole).get('parsedUsers', [])
         users = {"users": self.getCheckedItemsId(self.listWidget_24)}
+        json_users = json.dumps(users)
         
         originalUserSet = set(originalUsers)
         addedUsersSet = set(users["users"])
@@ -245,7 +264,6 @@ class AddProgramTab(QWidget):
         missingUsers = list(missingUsersSet)
         addedUsers = list(addedUsersSet)
         
-        json_users = json.dumps(users)
         amount = float(self.amountLineEdit.text() or 0)
 
         formData = {
@@ -365,7 +383,6 @@ class AddProgramTab(QWidget):
             pass
 
         self.updateDisplayProgramsList(filterProgramsData)
-        self.handleSearchReturned()
         self.pushButton_10.setEnabled(False)
         
     def updateDepartmentsList(self, departmentData, enrolledUsers, enable = True):
@@ -677,9 +694,9 @@ class AddProgramTab(QWidget):
                     self.amountLineEdit.setDisabled(True)
                     pass
                 elif  item['paymentStatus']  == 3:
-                    enableEditUserDept = False
+                    enableEditUserDept = True
                     self.requestForPayment.setEnabled(True)
-                    self.requestForPayment.setText("Program payment is denied")
+                    self.requestForPayment.setText("Program payment is denied, retry")
                     self.amountLineEdit.setDisabled(False)
                     pass
                 pass
@@ -721,9 +738,19 @@ class AddProgramTab(QWidget):
         if current_item is not None:
             # Retrieve the data stored in the UserRole role
             data = current_item.data(Qt.UserRole)
-            result = Client.updateProgramPayment(data["id"], {"paymentStatus": 1})
+            
+            users = {"users": self.getCheckedItemsId(self.listWidget_24)}
+            departments = {"departments": self.getCheckedItemsId(self.listView_5) }
+            json_departments = json.dumps(departments)
+            json_users = json.dumps(users)
+            result = Client.updateProgramPayment(data["id"], {"paymentStatus": 1, "cost": float(self.amountLineEdit.text() or 0), "users": json_users, "departments":json_departments})
             if result == True:
-                self.updateDisplayProgramsList(Client.getPrograms())
+                self.programsData = Client.getPrograms()
+                # self.updateDisplayProgramsList()
+                # self.handleSearchReturned()
+                previousIndex = self.programsListWidget.currentRow()
+                self.updateDisplayProgramsList( self.programsData)
+                self.programsListWidget.setCurrentRow(previousIndex)
             
 
     def notifyUser(self, programId):
