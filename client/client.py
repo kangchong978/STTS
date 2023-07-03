@@ -43,6 +43,12 @@ class Client:
         cursor.execute("SELECT * FROM programs WHERE enable = 1")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Programs')
+    
+    @staticmethod
+    def getProgramById(id):
+        cursor.execute(f'SELECT * FROM programs WHERE enable = 1 and id = {id}')
+        results = cursor.fetchall()
+        return Client.parseToDictWithProgress(results, 'Fetching Program')
 
     @staticmethod
     def getUsers():
@@ -178,6 +184,8 @@ class Client:
         else:
             return False
         
+        
+        
     @staticmethod
     def getUserApprovementByIds(ids):
         if isinstance(ids,list) and len(ids):
@@ -244,6 +252,19 @@ class Client:
         query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s, users = %s, cost = %s"\
             "WHERE id = %s"
         values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], data['users'], data['cost'], id)
+        
+        Client.executeWithProgress(query, values, 'Updating program')
+        
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+    @staticmethod
+    def updateProgramUsers(id, data):
+         
+        query = "UPDATE programs SET users = %s "\
+            "WHERE id = %s"
+        values = (  data['users'] , id)
         
         Client.executeWithProgress(query, values, 'Updating program')
         

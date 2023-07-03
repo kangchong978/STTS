@@ -198,12 +198,20 @@ class AddProgramTab(QWidget):
         id = self.programsListWidget.currentItem().data(Qt.UserRole)['id']
         departments = {"departments": self.getCheckedItemsId(self.listView_5) }
         json_departments = json.dumps(departments)
+        originalUsers = self.programsListWidget.currentItem().data(Qt.UserRole).get('parsedUsers', [])
         users = {"users": self.getCheckedItemsId(self.listWidget_24)}
+        
+        originalUserSet = set(originalUsers)
+        addedUsersSet = set(users["users"])
+        missingUsersSet = originalUserSet - addedUsersSet
+        addedUsersSet = addedUsersSet - originalUserSet
+
+        missingUsers = list(missingUsersSet)
+        addedUsers = list(addedUsersSet)
+        
         json_users = json.dumps(users)
         amount = float(self.amountLineEdit.text() or 0)
 
-
-        
         formData = {
             "title": title,
             "imageUrl": imageUrl,
@@ -216,9 +224,43 @@ class AddProgramTab(QWidget):
         }
         result =  Client.updateProgram(id,formData)
         if result == True:
+            if len(missingUsers) > 0:
+                self.updateUsersApprovement({"id":id ,"approveStatus":0}, missingUsers)
+            if len(addedUsers) > 0:
+                self.updateUsersApprovement({"id":id ,"approveStatus":4}, addedUsers)
             previousIndex = self.programsListWidget.currentRow()
             self.updateDisplayProgramsList(Client.getPrograms())
             self.programsListWidget.setCurrentRow(previousIndex)
+            
+    def updateUsersApprovement(self, data, usersIds):
+        users = Client.getUsersByIds(usersIds)
+        for user in users:
+            userNewApprovements = self.getClientApprovements(user)
+            newApprovements = Client.getUserApprovementByIds(   userNewApprovements)
+            found_items = [a for a in newApprovements if a["programId"]== data['id']]
+            if len(found_items) > 0:
+                approval_data = {
+                    "id": int(found_items[0]["id"]),
+                    "approveStatus": data["approveStatus"]  # Set the status to 2 for Approved
+                }
+                Client.updateApproval(approval_data)
+                pass
+            else:
+                approveId = Client.addNewApproval({"userId":user["id"], "programId":data['id'], 'approveStatus': 4})
+                newApprovements.append(approveId)
+                result = Client.updateUserProgramApprovements(self.currentUser['id'], newApprovements)
+        
+    def getClientApprovements(self, userData):
+        approvements = []
+        #TODO
+        userData = userData
+        self.currentUser = Client.getUser(userData["id"])
+        if 'approvementIds' in self.currentUser and isinstance(self.currentUser ['approvementIds'], str) and self.currentUser ['approvementIds'] != '':
+            parsed = json.loads(self.currentUser ['approvementIds'])
+            if 'approvementIds' in parsed and isinstance(parsed ['approvementIds'], list) and parsed['approvementIds'] is not None:
+                approvements = parsed['approvementIds']
+                    
+        return approvements
         
     def addNewProgramHandler(self):
         result = self.addNewProgramDialog()
@@ -285,7 +327,7 @@ class AddProgramTab(QWidget):
         self.handleSearchReturned()
         self.pushButton_10.setEnabled(False)
         
-    def updateDepartmentsList(self, departmentData):
+    def updateDepartmentsList(self, departmentData, enrolledUsers):
         data = self.departments
         model = QStandardItemModel(self.listView_5)
         if data is None:
@@ -304,32 +346,31 @@ class AddProgramTab(QWidget):
         self.listView_5.setModel(model)
         delegate = CheckBoxDelegate(self.listView_5)
         self.listView_5.setItemDelegate(delegate)
-        model.itemChanged.connect(self.handleDepartmentItemChecked)
+        model.itemChanged.connect(lambda item: self.handleDepartmentItemChecked(item, enrolledUsers))
+
+    
+    # def getEnrolledUsers(self, item):
+    #     enrolledUsers = []
+    #     if 'users' in item and isinstance( item ['users'], str) and item ['users'] is not '':
+    #         parsed = json.loads( item ['users'])
+    #         if 'users' in parsed and isinstance(parsed ['users'], list) and parsed['users'] is not None:
+    #             enrolledUsers = parsed['users']
+                
+
+    def updateEnrolledUsersList(self, enrolledUsers, oriUsers):
         
-    def updateEnrolledUsersList(self, enrolledUsers):
-        # data = self.departments
-        model = QStandardItemModel(self.listWidget_24)
-        if enrolledUsers is None:
-            return
-        self.updateParticipantsList(usersWithDetails=enrolledUsers)
-        # for index, users in enumerate(enrolledUsers):
-        #     userName = users.get('username')
-        #     if userName:
-        #         item = QStandardItem(userName)
-        #         item.setCheckable(True)
-        #         item.setCheckState(Qt.Checked)
-        #         item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-        #         item.setData(users, Qt.UserRole)
-        #         model.appendRow(item)
-        # self.listWidget_24.setModel(model)
-        # delegate = CheckBoxDelegate(self.listWidget_24)
-        # self.listWidget_24.setItemDelegate(delegate)
-        # model.itemChanged.connect(self.handleDepartmentItemChecked)
-        
-    def handleDepartmentItemChecked(self):
+        self.updateParticipantsList( usersIds=oriUsers, usersWithDetails=enrolledUsers,)
+
+
+
+                
+    def handleDepartmentItemChecked(self, item, enrolledUsers):
+         
         users = Client.getUsersByDepartments(self.getCheckedItemsId(self.listView_5))
         if isinstance(users, list):
-            self.updateEnrolledUsersList(users)        
+            self.updateEnrolledUsersList(users, enrolledUsers)    
+          
+           
         pass
 
     def getCheckedItemsId(self, listview):
@@ -347,39 +388,47 @@ class AddProgramTab(QWidget):
         # Call your desired function with the checked item indices
         # your_function(checked_items)
         
-    def updateParticipantsList(self, usersId = None, usersWithDetails = None):
-        
-        if usersId != None and isinstance(usersId, list) : 
-            data = Client.getUsersByIds(usersId)
-        else:
-            data = usersWithDetails 
-        
-        
-        model = QStandardItemModel(self.listWidget_24)
+    def updateParticipantsList(self, usersIds=None, usersWithDetails=None):
+            data = []
 
-        for user in data:
-            username = user.get('username', 'Unknown')
-            departmentId = user.get('departmentId')
+            # Add users from usersIds
+            if usersIds is not None and isinstance(usersIds, list):
+                data.extend(Client.getUsersByIds(usersIds))
 
-            departmentName = 'Unknown'
-            if departmentId is not None:
-                department = next((dept for dept in self.departments if dept['id'] == departmentId), None)
-                if department:
-                    departmentName = department['name']
+            # Add remaining users from usersWithDetails
+            if usersWithDetails is not None and isinstance(usersWithDetails, list):
+                for user in usersWithDetails:
+                    userId = user.get('id')
+                    if userId not in [dataUser.get('id') for dataUser in data]:
+                        data.append(user)
 
-            item = QStandardItem(f"{username} - {departmentName}")
-            item.setCheckable(True)
-            item.setCheckState(Qt.Checked)
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            model = QStandardItemModel(self.listWidget_24)
 
-            if departmentId is not None:
-                item.setData(user, Qt.UserRole)
+            for user in data:
+                username = user.get('username', 'Unknown')
+                departmentId = user.get('departmentId')
 
-            model.appendRow(item)
+                departmentName = 'Unknown'
+                if departmentId is not None:
+                    department = next((dept for dept in self.departments if dept['id'] == departmentId), None)
+                    if department:
+                        departmentName = department['name']
 
-        self.listWidget_24.setModel(model)
-        delegate = CheckBoxDelegate(self.listWidget_24)
-        self.listWidget_24.setItemDelegate(delegate)
+                item = QStandardItem(f"{username} - {departmentName}")
+                item.setCheckable(True)
+                item.setCheckState(Qt.Checked)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+                if departmentId is not None:
+                    item.setData(user, Qt.UserRole)
+
+                model.appendRow(item)
+
+            self.listWidget_24.setModel(model)
+            delegate = CheckBoxDelegate(self.listWidget_24)
+            self.listWidget_24.setItemDelegate(delegate)
+
+
         
     def handleTextColorClicked(self):
         color = QColorDialog.getColor()
@@ -471,6 +520,14 @@ class AddProgramTab(QWidget):
                 title = "Unknown"
                 if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
                     title = item['title']
+                
+                if 'users' in item and isinstance(item ['users'], str) and item['users'] != '':
+                    parsed = json.loads(item ['users'])
+                    if 'users' in parsed and isinstance(parsed ['users'], list) and parsed['users'] != None:
+                        parsedUsers = parsed['users']
+                        
+                        item['parsedUsers'] = parsedUsers
+                
                 listItem = QListWidgetItem(title)
                 listItem.setData(Qt.UserRole, item)
                 self.programsListWidget.addItem(listItem)
@@ -552,8 +609,8 @@ class AddProgramTab(QWidget):
             self.graphicsView_12_url.setText(imageUrl)
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
-            self.updateParticipantsList(usersId= enrolledUsers)
-            self.updateDepartmentsList(departments)
+            self.updateParticipantsList(usersIds= enrolledUsers  )
+            self.updateDepartmentsList(departments, enrolledUsers)
             
             try:
                 self.dateTimeEdit.setDateTime(dateTime)

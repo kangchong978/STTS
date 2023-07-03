@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from client import Client
+import json
 class ApprovalTab(QtWidgets.QWidget):
     def __init__(self):
         super(ApprovalTab, self).__init__()
@@ -147,6 +148,8 @@ class ApprovalTab(QtWidgets.QWidget):
                 approveStatustext = "Approved"
             elif item['approveStatus'] == 3:
                 approveStatustext = "Declined"
+            elif item['approveStatus'] == 4:
+                approveStatustext = "Department"
             else:
                 approveStatustext = "Unknown"
 
@@ -160,10 +163,6 @@ class ApprovalTab(QtWidgets.QWidget):
     def declineSelectedUser(self):
         selected_items = self.listWidget_4.selectedItems()
         for item in selected_items:
-            # user_widget = self.listWidget_4.itemWidget(item)
-            # approval_status_label = user_widget.layout().itemAt(3).widget()
-            # approval_status_label.setText("Declined")
-            
             id = self.listWidget_4.currentItem().data(Qt.UserRole)['id']
 
             
@@ -173,32 +172,28 @@ class ApprovalTab(QtWidgets.QWidget):
             }
             Client.updateApproval(approval_data)
             self.handleRefresh()
-            # Output "Declined" if the approveStatus is 3
-            # if approval_data["approveStatus"] == 3:
-                # print("Declined")
-
+            
     def approveSelectedUser(self):
         selected_items = self.listWidget_4.selectedItems()
         for item in selected_items:
-            # user_widget = self.listWidget_4.itemWidget(item)
-            # approval_status_label = user_widget.layout().itemAt(3).widget()
-            # approval_status_label.setText("Approved")
-            
             id = self.listWidget_4.currentItem().data(Qt.UserRole)['id']
             user_id = self.listWidget_4.currentItem().data(Qt.UserRole)['userId']
             programId = self.listWidget_4.currentItem().data(Qt.UserRole)['programId']
-            
-            # Get the userID associated with the selected user
-            # user_id_label = user_widget.layout().itemAt(1).widget()
-            # user_id = user_id_label.text()
-            # programId_label = user_widget.layout().itemAt(2).widget()
-            # programId = programId_label.text()
-            # Update the approval status in the database
             approval_data = {
                 "id": int(id),
                 "approveStatus": 2  # Set the status to 2 for Approved
             }
             Client.updateApproval(approval_data)
+            result = Client.getProgramById(programId)
+            newUsers = []
+            if isinstance(result, list) and len(result)>0 :
+                if 'users' in result[0] and isinstance(result[0]  ['users'], str) and result[0]  ['users'] != '':
+                    parsed = json.loads(result[0]  ['users'])
+                    if 'users' in parsed and isinstance(parsed ['users'], list) and parsed['users'] is not None:
+                        users = parsed['users']
+                        newUsers = users
+            newUsers.append(int(user_id))
+            Client.updateProgramUsers(int(programId), {"users":json.dumps({"users":newUsers})})
             notificationData = {
                 "userid":int(user_id),
                 "type":0,
@@ -208,9 +203,6 @@ class ApprovalTab(QtWidgets.QWidget):
             Client.addNewnotification(int(user_id), notificationData)
             self.handleRefresh()
             
-            # Output "Approved" if the approveStatus is 2
-            # if approval_data["approveStatus"] == 2:
-                # print("Approved")
 
     def searchByProgramID(self, text):
         count = self.listWidget_4.count()

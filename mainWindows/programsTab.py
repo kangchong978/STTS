@@ -298,6 +298,11 @@ class ProgramsTab(QWidget):
                         self.enrollPushButton.setEnabled(True)
                         self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
                         pass
+                    elif item['enrollStatusCode'] == 4:
+                        self.enrollPushButton.setText("Enrolled by department")
+                        self.enrollPushButton.setEnabled(True)
+                        self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                        pass
                     else:
                         self.enrollPushButton.setText("Enroll now")
                         self.enrollPushButton.setEnabled(False)
@@ -388,6 +393,8 @@ class ProgramsTab(QWidget):
                 statusText = "Enrolled"
             elif item['enrollStatusCode'] == 3:
                 statusText = "Rejected"
+            elif item['enrollStatusCode'] == 4:
+                statusText = "Department Enrolled"
         elif 'enrollStatusCode' not in item :
             statusText = "Available"
 
