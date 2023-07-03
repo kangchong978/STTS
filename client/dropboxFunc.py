@@ -3,7 +3,7 @@ import dropbox
 
 app_key = 'kfd5bkpsq7oej8e'
 app_secret = 'g0giv0qjvnkgccz'
-access_token = 'sl.Bhdt58gLkUD9H0iAcLf3fYTlCD56j3kviHJzbNgyN7U24FOB7ruQlZvBpzmQm56YB7oVtRRJLbJkyihAWWnE0vhLkPSB8ke2imxue_jeWpxG8zVP53aVVWXLxSxNKkgFsWQi0HqmCPE'  # Optional if you already have an access token
+access_token = 'sl.Bhch2tdh7mLVmdJDpzLADN-1aZ98iblv_13wuX_RWk52Sz37w21V-5SZd_t25RN4TMFmz5O9F6769K4wKK7vPubwrtveasyj9Lcddwwd5Avr4H59l87f-5v39UdDjuD8P33MSD0bsLw'  # Optional if you already have an access token
 
 dbx = dropbox.Dropbox(access_token) 
 
