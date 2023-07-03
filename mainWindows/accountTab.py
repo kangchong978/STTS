@@ -217,6 +217,7 @@ class AccountTab(QWidget):
         newAmount, ok = QInputDialog.getDouble(self, "Update Amount", "Enter new amount:", currentAmount, decimals=2)
         if ok:
             self.accountData["amount"] = newAmount
+            self.accountData["updatedTimestamp"] = int(time.time() * 1000)
             result =  Client.updateAccount(self.accountData)
             if result == True:
                 self.accountData = Client.getAccount()

@@ -84,14 +84,10 @@ class Client:
 
     @staticmethod
     def getNotifications():
-        cursor.execute(f'SELECT * FROM notifications WHERE userId = "{user["id"]}"')
+        cursor.execute(f'SELECT * FROM notifications WHERE userId = "{user["id"]}" ORDER BY timestamp DESC')
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Notifications')
-    
-    def getNotifications2():
-        cursor.execute('SELECT * FROM notifications WHERE userId ="{userId}"')
-        results = cursor.fetchall()
-        return Client.parseToDictWithProgress(results, 'Fetching Notifications')
+ 
 
     @staticmethod
     def getAccount():
@@ -384,6 +380,19 @@ class Client:
                 success_count += 1
 
         return success_count == len(user_ids)
+    
+         
+    def updatenotifications(id):
+        query = f"UPDATE notifications SET reached = 1 WHERE id = %s"
+        values = (id,)
+        Client.executeWithProgress(query, values, 'Updating notifications status')
+        # connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+         
     
     def addNewApproval(data):
         query = "INSERT INTO approval (userid, programId, approveStatus) VALUES (%s, %s, %s)"

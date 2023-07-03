@@ -46,6 +46,8 @@ class NotificationsTab(QWidget):
                 listItem.setSizeHint(widget.sizeHint())
                 self.listView.addItem(listItem)
                 self.listView.setItemWidget(listItem, widget)
+                if item['reached'] == 0:
+                    Client.updatenotifications(item["id"])
             pass
         pass
     
@@ -78,14 +80,15 @@ class NotificationsTab(QWidget):
                     badge = "<font color='red'>* </font>"
                 pass
             if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] is not None:
-                timestamp = item['timestamp']
+                timestamp = 1688399250407 / 1000  # Convert milliseconds to seconds
+                datetime_obj = datetime.datetime.fromtimestamp(timestamp)
+                dateTimeText = datetime_obj.strftime("%d/%m/%Y %H:%M:%S")
                 current_date = datetime.datetime.now().date()
-                item_date = datetime.datetime.fromtimestamp(timestamp).date()
-
+                item_date = datetime_obj.date()
                 if item_date == current_date:
-                    dateTimeText = datetime.datetime.fromtimestamp(timestamp).strftime('%H:%M')
+                    dateTimeText = datetime_obj.strftime("%H:%M")
                 else:
-                    dateTimeText = datetime.datetime.fromtimestamp(timestamp).strftime('%d %b %y')
+                    dateTimeText = datetime_obj.strftime("%d %b %y")
 
             #TODO   
             if 'programId' in item and isinstance(item['programId'], int) and item['programId'] != None:
