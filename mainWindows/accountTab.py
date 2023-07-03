@@ -1,5 +1,7 @@
 
+import json
 import sys
+import time
 sys.path.append("client")
 from client import Client
 sys.path.append("components")
@@ -136,13 +138,19 @@ class AccountTab(QWidget):
         
         programTitle = "Unknown"
         programTotalCost = "0.00"
+        totalUsers = 0
        
         
         if isinstance(item, dict):
             if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
                     programTitle = item['title']
+            if 'users' in item and isinstance(item['users'], str) and item['users'] != '':
+                    parsed = json.loads(item['users'])
+                    if 'users' in parsed and isinstance(parsed['users'], list) and parsed['users'] is not None:
+                        totalUsers = len(parsed['users'])
+                        # participants = ',   '.join([user.get('username', 'Unknown') for user in users])
             if 'cost' in item and isinstance(item['cost'], float) and item['cost'] != None:
-                    programTotalCost = "{:.2f}".format(item['cost'])
+                    programTotalCost = "{:.2f}".format(item['cost'] * totalUsers)
     
         
         programNameLabel.setText( programTitle)
@@ -150,17 +158,24 @@ class AccountTab(QWidget):
         
         horizontalLayout.addWidget(programCostLabel)
         horizontalLayout.addWidget(programNameLabel)
-        if item['paymentStatus'] == 0:
+        if item['paymentStatus'] == 0: 
+            status.setHidden(False)
+            status.setText("No Request")
+            paymentDoneButton.setHidden(True)
+            paymentRejectButton.setHidden(True)
+            horizontalLayout.addWidget(status)
+            pass
+        elif item['paymentStatus'] == 1:
             status.setHidden(True)
             horizontalLayout.addWidget(paymentDoneButton)
             horizontalLayout.addWidget(paymentRejectButton)
-        elif item['paymentStatus'] == 1: 
+        elif item['paymentStatus'] == 2: 
             status.setHidden(False)
             status.setText("Payment Done")
             paymentDoneButton.setHidden(True)
             paymentRejectButton.setHidden(True)
             horizontalLayout.addWidget(status)
-        elif item['paymentStatus'] == 2: 
+        elif item['paymentStatus'] == 3: 
             status.setHidden(False)
             status.setText("Payment Rejected")
             paymentDoneButton.setHidden(True)
@@ -175,12 +190,11 @@ class AccountTab(QWidget):
     
     def updatePaymentDone(self, item):
         self.showPaymentDoneDialog(item)
-        Client.updateProgramPayment(item['id'],{"paymentStatus":1})
         self.updateDisplayApprovementList(Client.getPrograms())
         pass
     
     def updatePaymentDenied(self, id):
-        Client.updateProgramPayment(id,{"paymentStatus":2})
+        Client.updateProgramPayment(id,{"paymentStatus":3})
         self.updateDisplayApprovementList(Client.getPrograms())
         pass
     
@@ -197,13 +211,18 @@ class AccountTab(QWidget):
     def showPaymentDoneDialog(self, item):
         currentAmount = self.accountData.get("amount", 0.0)
         programCost = item.get("cost", 0.0)
-
-        remainingAmount = currentAmount - programCost
+        totalUsers = 0
+        if 'users' in item and isinstance(item['users'], str) and item['users'] != '':
+                    parsed = json.loads(item['users'])
+                    if 'users' in parsed and isinstance(parsed['users'], list) and parsed['users'] is not None:
+                        totalUsers = len(parsed['users'])
+        totalCost=  (programCost*totalUsers)
+        remainingAmount = currentAmount - totalCost
 
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Information)
         msgBox.setWindowTitle("Payment Confirmation")
-        msgBox.setText(f"The cost of the program is: ${programCost:.2f}")
+        msgBox.setText(f"The cost of the program is: ${totalCost:.2f}")
         msgBox.setInformativeText(f"The remaining amount will be: ${remainingAmount:.2f}")
         msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
@@ -219,18 +238,20 @@ class AccountTab(QWidget):
             newAmount = remainingAmount
             previousAmount = currentAmount
             programId = item.get("id")
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            timestamp =  int(time.time() * 1000)
 
             accountData = {
                 "amount": newAmount,
                 "previousAmount": previousAmount,
                 "programId": programId,
-                "timestamp": timestamp,
+                "updatedTimestamp": timestamp,
             }
             result = Client.updateAccount(accountData)
+            Client.updateProgramPayment(item['id'],{"paymentStatus":2})
             if result:
                 self.accountData = Client.getAccount()
                 self.updateAccountDetails()
+            
                 
 class CustomWidget(QWidget):
     def sizeHint(self):

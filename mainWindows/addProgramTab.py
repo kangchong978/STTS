@@ -46,8 +46,7 @@ class AddProgramTab(QWidget):
         self.horizontalLayout_19.addWidget(self.widget_8)
         self.widget_11 = QWidget(self)
         self.widget_11.setObjectName("widget_11")
-        self.amountLineEdit = QLineEdit(self.widget_11)
-        self.amountLineEdit.setObjectName("amountLineEdit")
+        
         self.verticalLayout_33 = QVBoxLayout(self.widget_11)
         self.verticalLayout_33.setSizeConstraint(QLayout.SetMaximumSize)
         self.verticalLayout_33.setObjectName("verticalLayout_33")
@@ -106,11 +105,10 @@ class AddProgramTab(QWidget):
         self.gridLayout_2.addLayout(self.verticalLayout_34 )
         self.dateTimeEdit = QDateTimeEdit(self.widget_11)
         self.dateTimeEdit.setObjectName("dateTimeEdit_4")
-        self.gridLayout_2.addWidget(self.dateTimeEdit )
+        self.gridLayout_2.addWidget(self.dateTimeEdit ) 
         self.locationLineText = QLineEdit(self.widget_11)
         self.locationLineText.setObjectName("locationLineText")
         self.gridLayout_2.addWidget(self.locationLineText )
-        # Create a QScrollArea
         scrollArea = QScrollArea(self.widget_11)
         scrollArea.setWidgetResizable(True)
         scrollContent = QWidget(scrollArea)
@@ -145,10 +143,24 @@ class AddProgramTab(QWidget):
         self.verticalLayout_114.addWidget(self.label_102)
         self.listView_5 = QListView(self.widget_11)
         self.listView_5.setObjectName("listView_5")
+        size_policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.listView_5.setSizePolicy(size_policy)
+
+        # Set a minimum height for the listView_5
+        self.listView_5.setMinimumHeight(200) 
+        
         self.verticalLayout_114.addWidget(self.listView_5)
         self.horizontalLayout_23.addLayout(self.verticalLayout_114)
         self.gridLayout_2.addLayout(self.horizontalLayout_23 )
+        self.amountLineEdit = QLineEdit(self.widget_11)
+        self.amountLineEdit.setObjectName("amountLineEdit")
         self.gridLayout_2.addWidget(self.amountLineEdit)
+        self.totalCost = QLabel(self.widget_11)
+        self.totalCost.setObjectName("totalCost")
+        self.gridLayout_2.addWidget(self.totalCost)
+        self.requestForPayment = QPushButton(self.widget_11)
+        self.requestForPayment.setObjectName("requestForPayment")
+        self.gridLayout_2.addWidget(self.requestForPayment)
         # self.gridLayout_2.setStretch(3, 1)
         
         self.uploadPushButton.setText("Upload Image")
@@ -166,7 +178,16 @@ class AddProgramTab(QWidget):
         self.locationLineText.setPlaceholderText("Input program`s location here ...")
         self.fontSizeComboBox.addItems(self.suggestionFontSizes)
         self.fontSizeComboBox.setCurrentText("13")
-        self.amountLineEdit.setPlaceholderText("Input amount here")
+        self.amountLineEdit.setPlaceholderText("Insert cost per participants")
+        self.totalCost.setText("Amount total: $")
+        self.requestForPayment.setText("Request Payment")
+        
+        double_validator = QDoubleValidator()
+        double_validator.setNotation(QDoubleValidator.StandardNotation)  # Allow standard floating-point notation
+        double_validator.setDecimals(2)  # Specify the number of decimal places allowed
+
+        # Set the validator for the amountLineEdit
+        self.amountLineEdit.setValidator(double_validator)
 
         self.updateDisplayProgramsList(self.programsData)
         self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
@@ -186,7 +207,22 @@ class AddProgramTab(QWidget):
         self.pushButton_10.pressed.connect(self.saveChangeCurrentProgram)
         self.addProgramsButton.pressed.connect(self.addNewProgramHandler)
         self.removeProgramsButton.pressed.connect(self.removeProgramHandler)
+        self.amountLineEdit.textChanged.connect(self.onAmountChanged)
         
+        
+    def onAmountChanged(self):
+        # Retrieve the new amount value from the line edit
+        text = self.amountLineEdit.text()
+        amount = 0
+        if text != "":
+            amount = float(text)
+            
+        new_amount = amount
+
+        # Calculate the total cost
+        total_cost = new_amount * len(self.getCheckedItemsId(self.listWidget_24))  # Assuming enrolledUsers is a list of enrolled users
+
+        self.totalCost.setText(str(total_cost))
         
     def saveChangeCurrentProgram(self):
         title = self.titleLineText.text()
@@ -327,7 +363,7 @@ class AddProgramTab(QWidget):
         self.handleSearchReturned()
         self.pushButton_10.setEnabled(False)
         
-    def updateDepartmentsList(self, departmentData, enrolledUsers):
+    def updateDepartmentsList(self, departmentData, enrolledUsers, enable = True):
         data = self.departments
         model = QStandardItemModel(self.listView_5)
         if data is None:
@@ -336,7 +372,14 @@ class AddProgramTab(QWidget):
             department_name = department.get('name')
             if department_name:
                 item = QStandardItem(department_name)
-                item.setCheckable(True)
+                if enable:
+                    item.setCheckable(True)
+                    item.setEnabled(True)
+                else :
+                    item.setCheckable(False)
+                    item.setEnabled(False)
+                    
+                    
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 item.setData(department, Qt.UserRole)
                 model.appendRow(item)
@@ -369,8 +412,8 @@ class AddProgramTab(QWidget):
         users = Client.getUsersByDepartments(self.getCheckedItemsId(self.listView_5))
         if isinstance(users, list):
             self.updateEnrolledUsersList(users, enrolledUsers)    
+            self.onAmountChanged()
           
-           
         pass
 
     def getCheckedItemsId(self, listview):
@@ -388,7 +431,7 @@ class AddProgramTab(QWidget):
         # Call your desired function with the checked item indices
         # your_function(checked_items)
         
-    def updateParticipantsList(self, usersIds=None, usersWithDetails=None):
+    def updateParticipantsList(self, usersIds=None, usersWithDetails=None, enable =True):
             data = []
 
             # Add users from usersIds
@@ -403,6 +446,7 @@ class AddProgramTab(QWidget):
                         data.append(user)
 
             model = QStandardItemModel(self.listWidget_24)
+            model.itemChanged.connect(self.onAmountChanged)
 
             for user in data:
                 username = user.get('username', 'Unknown')
@@ -415,12 +459,19 @@ class AddProgramTab(QWidget):
                         departmentName = department['name']
 
                 item = QStandardItem(f"{username} - {departmentName}")
-                item.setCheckable(True)
+                if enable:
+                    item.setEnabled(True)
+                    item.setCheckable(True)
+                else :
+                    item.setEnabled(False)
+                    item.setCheckable(False)
                 item.setCheckState(Qt.Checked)
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
 
                 if departmentId is not None:
                     item.setData(user, Qt.UserRole)
+                    
+
 
                 model.appendRow(item)
 
@@ -551,10 +602,13 @@ class AddProgramTab(QWidget):
         title = ""
         imageUrl = ""
         subtitle = ""
-        dateTime = QDate.currentDate()
+        dateTime = QDateTime.currentDateTime()
         location = ""
         enrolledUsers = []
         departments = []
+        cost = ""
+        digitCost = 0
+        enableEditUserDept = True
         
         
         
@@ -569,12 +623,16 @@ class AddProgramTab(QWidget):
             if 'description' in item and isinstance(item['description'], str) and item['description'] != None:
                 subtitle = item['description']
                 pass
-            if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] != None:
+            if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] != 0:
                 timestamp = item['timestamp']
                 datetime_obj = datetime.datetime.fromtimestamp(timestamp)
                 dateTime = QDateTime(datetime_obj.date(), datetime_obj.time())
             if 'location' in item and isinstance(item['location'], str) and item['location'] != None:
                 location = item['location']
+                pass
+            if 'cost' in item and isinstance(item['cost'], float) and item['cost'] != None:
+                digitCost = item['cost']
+                cost = "{:.2f}".format(item['cost'])
                 pass
             if 'users' in item and isinstance(item['users'], str) and item['users'] != None:
                 parsed_json = {}
@@ -594,10 +652,36 @@ class AddProgramTab(QWidget):
                 if 'departments' in parsed_json and isinstance(parsed_json['departments'], list) and parsed_json['departments'] != None:
                     departments = parsed_json['departments']
                 pass
+            if 'paymentStatus' in item and isinstance(item['paymentStatus'], int) :
+                if  item['paymentStatus']  == 0:
+                    enableEditUserDept = True
+                    self.requestForPayment.setEnabled(True)
+                    self.requestForPayment.setText("Request Payment")
+                    self.amountLineEdit.setDisabled(False)
+                    pass
+                elif  item['paymentStatus']  == 1:
+                    enableEditUserDept = False
+                    self.requestForPayment.setEnabled(False)
+                    self.requestForPayment.setText("Program payment is pending")
+                    self.amountLineEdit.setDisabled(True)
+                    pass
+                elif  item['paymentStatus']  == 2:
+                    enableEditUserDept = False
+                    self.requestForPayment.setEnabled(False)
+                    self.requestForPayment.setText("Program payment is approved")
+                    self.amountLineEdit.setDisabled(True)
+                    pass
+                elif  item['paymentStatus']  == 3:
+                    enableEditUserDept = False
+                    self.requestForPayment.setEnabled(True)
+                    self.requestForPayment.setText("Program payment is denied")
+                    self.amountLineEdit.setDisabled(False)
+                    pass
+                pass
+
                 
             self.titleLineText.setText(title)
             self.subtitleLineText.setText(subtitle)
-            scene = QGraphicsScene()
             image = QImage()
             try:
                 image.loadFromData(requests.get(imageUrl).content)
@@ -609,8 +693,14 @@ class AddProgramTab(QWidget):
             self.graphicsView_12_url.setText(imageUrl)
             self.subtitleLineText.setText(subtitle)
             self.locationLineText.setText(location)
-            self.updateParticipantsList(usersIds= enrolledUsers  )
-            self.updateDepartmentsList(departments, enrolledUsers)
+            self.updateParticipantsList(usersIds= enrolledUsers ,enable = enableEditUserDept )
+            self.updateDepartmentsList(departments, enrolledUsers,enable =enableEditUserDept)
+            self.label_103.setText(f"Participants ({len(enrolledUsers)})")
+            self.amountLineEdit.setText(f"{cost}")
+            self.totalCost.setText( f"{( digitCost * len(enrolledUsers))}")
+            self.requestForPayment.pressed.connect(self.handleRequestForPayment)
+            
+            
             
             try:
                 self.dateTimeEdit.setDateTime(dateTime)
@@ -618,6 +708,18 @@ class AddProgramTab(QWidget):
                 pass
             pass
         pass
+    def handleRequestForPayment(self):
+        self.requestForPayment.setEnabled(False)
+        current_item = self.programsListWidget.currentItem()
+    
+        # Check if there is a current item
+        if current_item is not None:
+            # Retrieve the data stored in the UserRole role
+            data = current_item.data(Qt.UserRole)
+            result = Client.updateProgramPayment(data["id"], {"paymentStatus": 1})
+            if result == True:
+                self.updateDisplayProgramsList(Client.getPrograms())
+            
     
     def addNewProgramDialog(self):
         dialog = QDialog()

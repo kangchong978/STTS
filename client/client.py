@@ -91,7 +91,7 @@ class Client:
     @staticmethod
     def getAccount():
         # latest 1 only
-        cursor.execute("SELECT * FROM company ORDER BY updatedTimestamp DESC LIMIT 1")
+        cursor.execute("SELECT * FROM company ORDER BY id DESC LIMIT 1")
         results = cursor.fetchall()
         parsed = Client.parseToDictWithProgress(results, 'Fetching Account')
         if len(parsed) > 0:
