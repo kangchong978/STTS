@@ -78,7 +78,7 @@ class Client:
 
     @staticmethod
     def getNotifications():
-        cursor.execute("SELECT * FROM notifications")
+        cursor.execute(f'SELECT * FROM notifications WHERE users = "{user["id"]}"')
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Notifications')
 
@@ -318,7 +318,7 @@ class Client:
         else:
             return False
         
-    def addNewnotification(user_ids, data):
+    def addNewnotifications(user_ids, data):
         query = "INSERT INTO notifications (userid, type, innerType, timestamp, programId) VALUES (%s, %s, %s, %s, %s)"
         current_timestamp = int(time.time() * 1000)
         success_count = 0

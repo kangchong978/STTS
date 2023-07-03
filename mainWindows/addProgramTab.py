@@ -219,7 +219,11 @@ class AddProgramTab(QWidget):
             previousIndex = self.programsListWidget.currentRow()
             self.updateDisplayProgramsList(Client.getPrograms())
             self.programsListWidget.setCurrentRow(previousIndex)
-        
+            #changes 
+            self.notifyUser(id) 
+            self.notifyFinance(id)
+
+
     def addNewProgramHandler(self):
         result = self.addNewProgramDialog()
         if result != None:
@@ -561,6 +565,26 @@ class AddProgramTab(QWidget):
                 pass
             pass
         pass
+
+    def notifyUser(self, programId):
+        # allDepartments = Client.getDepartments()  # Retrieve all departments from the database
+        # departmentIds = [department['departments'] for department in allDepartments]
+        notificationData = {
+            "type": 0,
+            "innerType": 0,
+            "programId": int(programId),
+        }
+        
+        Client.addNewnotifications(self.getCheckedItemsId(self.listWidget_24), notificationData)
+
+    def notifyFinance(self, programId):
+        hrs = Client.getUsersByDepartments([9])
+        notificationData = {
+            "type":0,
+            "innerType":0,
+            "programId": int(programId),
+        }
+        Client.addNewnotifications([item['id'] for item in hrs], notificationData)
     
     def addNewProgramDialog(self):
         dialog = QDialog()

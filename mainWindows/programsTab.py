@@ -340,18 +340,14 @@ class ProgramsTab(QWidget):
             
             result = Client.updateUserProgramApprovements(self.currentUser['id'], self.userPrograms)
             if result == True:
+                
                 currentIndex = self.programsListWidget.currentIndex().row()
                 self.programsData = Client.getPrograms()
                 self.userPrograms = self.getClientEnrolledPrograms()
                 self.updateDisplayProgramsList(self.programsData)
-                
-            #     # notificationData = {
-            #     # "userid":int(user_id),
-            #     # "type":0,
-            #     # "innerType":0,
-            #     # "programId": int(programId),
-            # }
-            #     Client.addNewnotification(int(user_id), notificationData)
+                #modified
+                self.notifyHR(currentData["id"]) 
+
                 if(currentIndex != None):
                     self.programsListWidget.setCurrentRow(currentIndex)
                     self.updateDisplayInformationView(currentIndex)
@@ -359,10 +355,21 @@ class ProgramsTab(QWidget):
             print(currentData)
             
         pass
-    
+           
     def noneNoneDialog(self):
         pass
     
+
+    #todo 
+    #modified
+    def notifyHR(self, programId):
+        hrs = Client.getUsersByDepartments([9])
+        notificationData = {
+            "type":0,
+            "innerType":0,
+            "programId": int(programId),
+        }
+        Client.addNewnotifications([item['id'] for item in hrs], notificationData)
 
 
     def createWidget(self, item):

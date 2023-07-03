@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import *
 sys.path.append("client")
 from client import Client
 import datetime
-
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class NotificationsTab(QWidget):
     def __init__(self):
@@ -18,16 +19,23 @@ class NotificationsTab(QWidget):
         self.verticalLayout_8 = QVBoxLayout(self)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
         self.widget_14 = QWidget(self)
+        self.refreshPushButton = QPushButton(self)
+        self.refreshPushButton.setObjectName("refreshPushButton")
+        icon_path = os.path.join(current_dir, "Refresh_icon.svg.png")
+        self.refreshPushButton.setIcon(QIcon(icon_path))
         self.listView = QListWidget(self)
         self.listView.setObjectName("listView")
         self.verticalLayout_8.addWidget(self.listView)
+        self.verticalLayout_8.addWidget(self.refreshPushButton)
         
         self.listView.setStyleSheet("QListView::item:selected { background-color: #fbfbfb; }")
         
-        
+        self.refreshPushButton.pressed.connect(self.updateNotification)
         self.updateDisplayNotificationsList(Client.getNotifications())
-        
-        
+          
+    def updateNotification(self):
+       self.updateDisplayNotificationsList(Client.getNotifications())
+       
     def updateDisplayNotificationsList(self, data):
         self.listView.clear()
         if isinstance(data, list) and len(data) > 0:
