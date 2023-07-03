@@ -174,7 +174,7 @@ class LoginWindow(QDialog):
 
         result = Client.checkCredentials(username, password)
 
-        if isinstance(result, int):
+        if isinstance(result, int) and result != False:
             if self.remember_checkbox.isChecked():
                 self.settings.setValue("username", username)
                 self.settings.setValue("password", password)

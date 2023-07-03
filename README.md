@@ -6,3 +6,11 @@ Staff training tracking system(STTS)
 1: programPaymentRelated([0]Done/ [1]Rejected), 
 2: programClosedRelated([0]Closed/ [1]Removed) 
 -->
+
+<!-- 
+programPaymentStatus
+0: notYet
+1: request 
+2: approved
+3: denied
+ -->

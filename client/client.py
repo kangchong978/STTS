@@ -96,7 +96,7 @@ class Client:
     @staticmethod
     def getAccount():
         # latest 1 only
-        cursor.execute("SELECT * FROM company ORDER BY updatedTimestamp DESC LIMIT 1")
+        cursor.execute("SELECT * FROM company ORDER BY id DESC LIMIT 1")
         results = cursor.fetchall()
         parsed = Client.parseToDictWithProgress(results, 'Fetching Account')
         if len(parsed) > 0:
@@ -337,13 +337,26 @@ class Client:
     
     def updateProgramPayment(id, data):
         # 0(pending), 1(approved), 2(rejected)
-        
-        query = "UPDATE programs SET paymentStatus = %s WHERE id = %s"
-        values = (data['paymentStatus'], id)
+        query = "UPDATE programs SET paymentStatus = %s"
+        values = [data['paymentStatus']]
 
-        # cursor.execute(query, values)
-        # connection.commit()
-        Client.executeWithProgress(query, values, 'Editing User')  
+        if data.get('cost') is not None:
+            query += ", cost = %s"
+            values.append(data['cost'])
+
+        if data.get('users') is not None:
+            query += ", users = %s"
+            values.append(data['users'])
+
+        if data.get('departments') is not None:
+            query += ", departments = %s"
+            values.append(data['departments'])
+
+        query += " WHERE id = %s"
+        values.append(id)
+
+        Client.executeWithProgress(query, tuple(values), 'Editing User')
+
         if cursor.rowcount > 0:
             return True
         else:

@@ -138,11 +138,11 @@ class NotificationsTab(QWidget):
                     if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
                         innerType = item['innerType']
                         if innerType == 0:
-                            messageText = f"The <b>{programTitle}</b>e is <font color='grey'>Closed</font>."
+                            messageText = f"The <b>{programTitle}</b> is <font color='grey'>Closed</font>."
                             # 
                             pass
                         elif innerType == 1:    
-                            messageText = f"The <b>{programTitle}</b>e is <font color='grey'>Removed</font>."
+                            messageText = f"The <b>{programTitle}</b> is <font color='grey'>Removed</font>."
                             # 
                             pass
                         pass
@@ -152,11 +152,11 @@ class NotificationsTab(QWidget):
                     if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
                         innerType = item['innerType']
                         if innerType == 0:
-                            messageText = f"The payment for <b>{programTitle}</b>e is declined<font color='grey'>Closed</font>."
+                            messageText = f"The payment for <b>{programTitle}</b>e is approved<font color='grey'></font>."
                             # 
                             pass
                         elif innerType == 1:    
-                            messageText = f"The payment for <b>{programTitle}</b>e is approved <font color='grey'>Removed</font>."
+                            messageText = f"The payment for <b>{programTitle}</b>e is declined<font color='grey'></font>."
                             # 
                             pass
                         pass

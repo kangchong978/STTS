@@ -86,6 +86,10 @@ class ProgramsTab(QWidget):
         self.locationLabel.setObjectName("locationLabel")
         self.locationLabel.setWordWrap(1)
         self.verticalLayout_10.addWidget(self.locationLabel)
+        self.participantsLabel = QLabel(self.scrollAreaWidgetContents_5)
+        self.participantsLabel.setObjectName("participantsLabel")
+        self.participantsLabel.setWordWrap(1)
+        self.verticalLayout_10.addWidget(self.participantsLabel)
         self.frame = QFrame(self.scrollAreaWidgetContents_5)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -243,6 +247,8 @@ class ProgramsTab(QWidget):
                 subtitle = "Unknown"
                 dateTime = "Unknown"
                 location = "Unknown"
+                participants = ""
+                
                 
                 if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
                     title = item['title']
@@ -257,10 +263,21 @@ class ProgramsTab(QWidget):
                     timestamp = item['timestamp']
                     dateTime = f"{datetime.datetime.fromtimestamp(timestamp).strftime('%d %b %y')}"
                     
+                
+                        
+                    
                 pass
                 if 'location' in item and isinstance(item['location'], str) and item['location'] != None:
                     location = item['location']
                 pass
+                if 'users' in item and isinstance(item['users'], str) and item['users'] != '':
+                    parsed = json.loads(item['users'])
+                    if 'users' in parsed and isinstance(parsed['users'], list) and parsed['users'] is not None:
+                        user_ids = parsed['users']
+                        users = Client.getUsersByIds(user_ids)
+                        participants = ',   '.join([user.get('username', 'Unknown') for user in users])
+                        # Use the 'participants' string as needed
+                
                 self.titleLabel.setText(title)
                 image = QImage()
                 try:
@@ -273,6 +290,7 @@ class ProgramsTab(QWidget):
                 self.subtitleLabel.setOpenExternalLinks(True)
                 self.dateTimeLabel.setText(dateTime)
                 self.locationLabel.setText(location)
+                self.participantsLabel.setText(participants)
                 if self.enrollPushButton.receivers(self.enrollPushButton.clicked) > 0:
                     self.enrollPushButton.clicked.disconnect()
 
@@ -300,7 +318,7 @@ class ProgramsTab(QWidget):
                         pass
                     elif item['enrollStatusCode'] == 4:
                         self.enrollPushButton.setText("Enrolled by department")
-                        self.enrollPushButton.setEnabled(True)
+                        self.enrollPushButton.setEnabled(False)
                         self.enrollPushButton.clicked.connect(self.noneNoneDialog)
                         pass
                     else:
@@ -314,6 +332,17 @@ class ProgramsTab(QWidget):
                     self.enrollPushButton.setEnabled(False)
                     self.enrollPushButton.clicked.connect(self.noneNoneDialog)
                     pass
+                
+                if 'paymentStatus' in item and isinstance(item['paymentStatus'], int) and item['paymentStatus'] != None:
+                    paymentStatus = item['paymentStatus']
+                    if paymentStatus == 0 or paymentStatus == 3:
+                        self.enrollPushButton.setEnabled(True)
+                    elif paymentStatus == 1   :
+                        self.enrollPushButton.setEnabled(False)
+                        self.enrollPushButton.setText("Pending for payment")
+                    elif paymentStatus == 1 or paymentStatus == 2 :
+                        self.enrollPushButton.setEnabled(False)
+                        self.enrollPushButton.setText("Payment is done")
             pass
         pass
 
