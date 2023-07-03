@@ -87,6 +87,11 @@ class Client:
         cursor.execute(f'SELECT * FROM notifications WHERE userId = "{user["id"]}"')
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Notifications')
+    
+    def getNotifications2():
+        cursor.execute('SELECT * FROM notifications WHERE userId ="{userId}"')
+        results = cursor.fetchall()
+        return Client.parseToDictWithProgress(results, 'Fetching Notifications')
 
     @staticmethod
     def getAccount():

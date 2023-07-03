@@ -1,4 +1,5 @@
 
+import json
 import sys
 sys.path.append("client")
 from client import Client
@@ -160,6 +161,9 @@ class AccountTab(QWidget):
             paymentDoneButton.setHidden(True)
             paymentRejectButton.setHidden(True)
             horizontalLayout.addWidget(status)
+           
+
+
         elif item['paymentStatus'] == 2: 
             status.setHidden(False)
             status.setText("Payment Rejected")
@@ -173,10 +177,18 @@ class AccountTab(QWidget):
         
         return widget
     
+
+
     def updatePaymentDone(self, item):
         self.showPaymentDoneDialog(item)
         Client.updateProgramPayment(item['id'],{"paymentStatus":1})
         self.updateDisplayApprovementList(Client.getPrograms())
+        if 'users' in item and isinstance(item ['users'], str) and item['users'] != '':
+                    parsed = json.loads(item ['users'])
+                    if 'users' in parsed and isinstance(parsed ['users'], list) and parsed['users'] != None:
+                        parsedUsers = parsed['users']
+                        
+                        self.notifyUserApproved(parsedUsers,item['id'])  
         pass
     
     def updatePaymentDenied(self, id):
@@ -227,11 +239,37 @@ class AccountTab(QWidget):
                 "programId": programId,
                 "timestamp": timestamp,
             }
-            result = Client.updateAccount(accountData)
+            result = Client.updateAccount(id,accountData)
             if result:
+                
                 self.accountData = Client.getAccount()
                 self.updateAccountDetails()
+ 
+                     
                 
+
+    def notifyUserApproved(self,users,programId):
+
+        notificationData = {
+            "type": 3,
+            "innerType": 0,
+            "programId": int(programId),
+        }
+
+        Client.addNewnotifications(users, notificationData)
+
+        
+    def notifyUserDeclined(self, programId):
+    
+        notificationData = {
+            "type": 3,
+            "innerType": 0,
+            "programId": int(programId),
+        }
+
+        checkedItems = self.updateDisplayApprovementList(Client.getPrograms())
+        Client.addNewnotifications(checkedItems, notificationData)
+
 class CustomWidget(QWidget):
     def sizeHint(self):
         return QSize(self.width(), self.height())

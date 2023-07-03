@@ -88,10 +88,13 @@ class NotificationsTab(QWidget):
                     dateTimeText = datetime.datetime.fromtimestamp(timestamp).strftime('%d %b %y')
 
             #TODO   
-            if 'programId' in item and isinstance(item['programId'], dict) and item['programId'] != None:
-                if 'title' in item['programId'] and isinstance(item['programId']['title'], str) and item['programId']['title'] != None:
-                    programTitle = item['programId']['title']
-            
+            if 'programId' in item and isinstance(item['programId'], int) and item['programId'] != None:
+                # if 'title' in item['programId'] and isinstance(item['programId']['title'], str) and item['programId']['title'] != None:
+                #     # programTitle = item['programId']['title']
+
+                programTitle = Client.getProgramById(item['programId'])[0]['title']
+
+
             if 'type' in item and isinstance(item['type'], int) and item['type'] != None:
                 type = item['type']
                 if type == 0:
@@ -116,6 +119,7 @@ class NotificationsTab(QWidget):
                         pass
                         # 
                     pass
+
                 elif type == 1:
                     if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
                         innerType = item['innerType']
@@ -143,6 +147,19 @@ class NotificationsTab(QWidget):
                             pass
                         pass
                         # 
+
+                elif type == 3:
+                    if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
+                        innerType = item['innerType']
+                        if innerType == 0:
+                            messageText = f"The payment for <b>{programTitle}</b>e is declined<font color='grey'>Closed</font>."
+                            # 
+                            pass
+                        elif innerType == 1:    
+                            messageText = f"The payment for <b>{programTitle}</b>e is approved <font color='grey'>Removed</font>."
+                            # 
+                            pass
+                        pass
                     pass
                 pass
             pass

@@ -625,8 +625,7 @@ class AddProgramTab(QWidget):
         pass
 
     def notifyUser(self, programId):
-        # allDepartments = Client.getDepartments()  # Retrieve all departments from the database
-        # departmentIds = [department['departments'] for department in allDepartments]
+
         notificationData = {
             "type": 0,
             "innerType": 0,
@@ -636,13 +635,13 @@ class AddProgramTab(QWidget):
         Client.addNewnotifications(self.getCheckedItemsId(self.listWidget_24), notificationData)
 
     def notifyFinance(self, programId):
-        hrs = Client.getUsersByDepartments([9])
+        finance = Client.getUsersByDepartments([8])
         notificationData = {
             "type":0,
             "innerType":0,
             "programId": int(programId),
         }
-        Client.addNewnotifications([item['id'] for item in hrs], notificationData)
+        Client.addNewnotifications([item['id'] for item in finance], notificationData)
     
     def addNewProgramDialog(self):
         dialog = QDialog()
