@@ -327,10 +327,10 @@ class ProgramsTab(QWidget):
                         self.enrollPushButton.clicked.connect(self.noneNoneDialog)
                         pass
                     pass
-                elif 'enrollStatusCode' not in item:
+                else:
                     self.enrollPushButton.setText("Enroll now")
-                    self.enrollPushButton.setEnabled(True)
-                    self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
+                    self.enrollPushButton.setEnabled(False)
+                    self.enrollPushButton.clicked.connect(self.noneNoneDialog)
                     pass
                 
                 if 'paymentStatus' in item and isinstance(item['paymentStatus'], int) and item['paymentStatus'] != None:
@@ -345,6 +345,8 @@ class ProgramsTab(QWidget):
                         self.enrollPushButton.setText("Payment is done")
             pass
         pass
+
+
     
     def showCancelEnrollmentFormDialog(self):
         currentData = self.programsListWidget.currentItem().data(Qt.UserRole)
@@ -381,6 +383,14 @@ class ProgramsTab(QWidget):
                 result = Client.updateUserProgramApprovements(self.currentUser['id'], newApprovements)
              
             if result == True:
+                
+                currentIndex = self.programsListWidget.currentIndex().row()
+                self.programsData = Client.getPrograms()
+                self.userPrograms = self.getClientEnrolledPrograms()
+                self.updateDisplayProgramsList(self.programsData)
+                #modified
+                self.notifyHR(currentData["id"]) 
+
                 self.handleRefresh()
                 
                 currentIndex = self.programsListWidget.currentIndex().row()
@@ -392,10 +402,21 @@ class ProgramsTab(QWidget):
            
             
         pass
-    
+           
     def noneNoneDialog(self):
         pass
     
+
+    #todo 
+    #modified
+    def notifyHR(self, programId):
+        hrs = Client.getUsersByDepartments([9])
+        notificationData = {
+            "type":0,
+            "innerType":0,
+            "programId": int(programId),
+        }
+        Client.addNewnotifications([item['id'] for item in hrs], notificationData)
 
 
     def createWidget(self, item):
