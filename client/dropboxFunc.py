@@ -3,9 +3,10 @@ import dropbox
 
 app_key = 'kfd5bkpsq7oej8e'
 app_secret = 'g0giv0qjvnkgccz'
-access_token = 'sl.Bhch2tdh7mLVmdJDpzLADN-1aZ98iblv_13wuX_RWk52Sz37w21V-5SZd_t25RN4TMFmz5O9F6769K4wKK7vPubwrtveasyj9Lcddwwd5Avr4H59l87f-5v39UdDjuD8P33MSD0bsLw'  # Optional if you already have an access token
+access_token = 's@aaa@l.Bhc0Tz-2yEVxcq9HD1EycfVWv3grq_0_gMlAw7Jvz38qjG2gr9-HHS5wmTDMbqQY7YGQRfn5uUfLzKtj1xsgoyteVD0zPLdPtbKn9wkSt44qUJL_Z-r8SB88UPUi-4AkbT5Ee_J8Qmk'  # Optional if you already have an access token
 
-dbx = dropbox.Dropbox(access_token) 
+
+dbx = dropbox.Dropbox(access_token.replace("@aaa@", "")) 
 
 def uploadImage(file_path):
     file_name = os.path.basename(file_path)  # Extract the filename from the file path
