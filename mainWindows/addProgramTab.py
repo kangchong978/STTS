@@ -8,6 +8,8 @@ import requests
 import sys
 sys.path.append("client")
 import json
+import dropboxFunc
+
 
 from client import Client
 import os
@@ -265,6 +267,9 @@ class AddProgramTab(QWidget):
         addedUsers = list(addedUsersSet)
         
         amount = float(self.amountLineEdit.text() or 0)
+        
+        if imageUrl != "":
+            imageUrl = dropboxFunc.uploadImage(imageUrl)
 
         formData = {
             "title": title,
