@@ -174,7 +174,7 @@ class LoginWindow(QDialog):
 
         result = Client.checkCredentials(username, password)
 
-        if result:
+        if isinstance(result, int):
             if self.remember_checkbox.isChecked():
                 self.settings.setValue("username", username)
                 self.settings.setValue("password", password)
@@ -183,7 +183,7 @@ class LoginWindow(QDialog):
                 self.settings.remove("username")
                 self.settings.remove("password")
                 self.settings.remove("remember_me")
-            client.user = {"username": username}
+            client.user = {"id":result, "username": username}
             self.accept()
         else:
             QMessageBox.warning(self, "Validation Error", "Username or password incorrect.")
