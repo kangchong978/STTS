@@ -1,14 +1,22 @@
-import unittest
+# import unittest
 import sys
 sys.path.append("client")
 from client import Client
 
+import unittest
+
 class TestStringMethods(unittest.TestCase):
 
-    def test_upper(self):
-        result = Client.getPrograms()
-        print(result)
-        self.assertEqual('foo'.upper(), 'FOO')
+    def testCheckCredentialsUser(self):
+        result = Client.checkCredentials("admin", "admin123")
+        self.assertEqual(result, 1)
+    
+    # def test_fetch_programs_SQL(self):
+    #     result = Client.getPrograms()
+    #     if isinstance(result, list) and len(result) > 0:
+    #         firstEnableRow = result[0]
+    #         self.assertEqual(firstEnableRow['id'],  2 )
+            
 
     # def test_isupper(self):
     #     self.assertTrue('FOO'.isupper())
@@ -23,3 +31,6 @@ class TestStringMethods(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    
+# Run test
+# python3.8 -m unittest tests.clientTest

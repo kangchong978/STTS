@@ -1,10 +1,10 @@
 import json
 import mysql.connector
 from tqdm import tqdm
-from PyQt5.QtWidgets import QApplication, QProgressDialog
+# from PyQt5.QtWidgets import QApplication, QProgressDialog
 import json
 import time
-
+from utils import parseToDictWithProgress
 user = None
 
 # Load settings from settings.json
@@ -136,21 +136,7 @@ class Client:
 
     @staticmethod
     def parseToDictWithProgress(data, desc):
-        result_list = []
-        columns = [column[0] for column in cursor.description]  # Get the column names
-
-        progress_dialog = QProgressDialog(desc, None, 0, len(data))
-        progress_dialog.setWindowModality(1)  # Set the dialog to modal
-        progress_dialog.setWindowTitle("Progress")
-        progress_dialog.show()
-
-        for i, row in enumerate(data):
-            result_dict = dict(zip(columns, row))
-            result_list.append(result_dict)
-            progress_dialog.setValue(i + 1)
-            QApplication.processEvents()  # Process events to keep GUI responsive
-
-
+        result_list =  parseToDictWithProgress(data, 'Fetching Programs', cursor)
         return result_list
 
     @staticmethod
