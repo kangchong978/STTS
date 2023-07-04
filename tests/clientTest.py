@@ -23,17 +23,15 @@ class TestStringMethods(unittest.TestCase):
     #        firstRow = result[0]
     #        self.assertEqual(firstRow['id'],  84 )
 
-    def editUser(userData):
-        query = "UPDATE users SET username = %s, departmentId = %s WHERE id = %s"
-        values = (userData['username'], userData['departmentId'], userData['id'])
-
-        Client.executeWithProgress(query, values, 'Editing User')  
-
-
-        if cursor.rowcount > 0:
-            return True
-        else:
-            return False
+    def testEditUser(self):
+        userData = {    
+            'username': 'theboss',
+            'departmentId': 4,
+            'role': 0,
+            'id': 36
+        }
+        result = Client.editUser(userData)
+        self.assertTrue(result)
 
     # def test_isupper(self):
     #     self.assertTrue('FOO'.isupper())
