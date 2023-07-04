@@ -171,8 +171,6 @@ class Client:
         else:
             return False
         
-        
-        
     @staticmethod
     def getUserApprovementByIds(ids):
         if isinstance(ids,list) and len(ids):
@@ -186,7 +184,6 @@ class Client:
             return Client.parseToDictWithProgress(results, 'Fetching Company')
         else:
             return []
-
 
     @staticmethod
     def updateApproval(approvalData):
@@ -245,6 +242,7 @@ class Client:
             return True
         else:
             return False
+        
     @staticmethod
     def updateProgramUsers(id, data):
          
