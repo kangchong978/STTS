@@ -1,5 +1,8 @@
 # STTS
 Staff training tracking system(STTS)
+<!-- Install required pakages
+pip install -r requirements.txt 
+-->
 
 <!-- types: 
 0: enrolmentRelated([0]Approved/ [1]Rejected | [2](department) added | [3]Removed (after approve)), 
