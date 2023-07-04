@@ -1,0 +1,6 @@
+dropbox==11.36.2
+mysql_connector_repackaged==0.3.1
+PyQt5==5.15.9
+PyQt5_sip==12.12.1
+Requests==2.31.0
+tqdm==4.65.0
