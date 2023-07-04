@@ -31,17 +31,38 @@ class TestStringMethods(unittest.TestCase):
     #        'id': 36
     #    }
     #    result = Client.editUser(userData)
+    #    userData2 = {    
+    #        'username': 'theboss',
+    #        'departmentId': 4,
+    #        'role': 0,
+    #        'id': 36
+    #    }
+    #    Client.editUser(userData2)
     #    self.assertTrue(result)
 
     #def testRemoveProgram(self):
     #    data = {'enable': 0}
-    #    result = Client.removeProgram(data, 40) 
+    #    result = Client.removeProgram(40, data) 
+    #    data2 = {'enable': 1}
+    #    Client.removeProgram(40, data2) 
+    #    self.assertTrue(result)
+    
+    #def testRemoveProgram(self):
+    #    data = {'enable': 0}
+    #    result = Client.removeProgram(40, data) 
+    #    data2 = {'enable': 1}
+    #    Client.removeProgram(40, data2) 
     #    self.assertTrue(result)
 
-    def testDeleteUser(self):
-        userData = {'id': 26}
-        result = Client.deleteUser(userData)
+    def testUpdateApprovalStatusById(self):
+        data = {'approveStatus': 0,
+                'id': 84}
+        result = Client.updateApprovalStatusById(data)
+        data2 = {'approveStatus': 4,
+                'id': 84}
+        Client.updateApprovalStatusById(data2)
         self.assertTrue(result)
+        
 
 
 if __name__ == '__main__':
