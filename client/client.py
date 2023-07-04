@@ -220,19 +220,18 @@ class Client:
 
         cursor.execute(query, values)
         result = cursor.fetchone()
-
-        if result is None:
-            return False
-
-        # Assuming the password is stored in the database as a hash, compare it with the provided password
-        # You may need to adapt this part based on how passwords are stored and hashed in your database
-        # Assuming the password is stored in the second column (index 1) of the query result
         stored_password = result[2]
 
         if stored_password == password:
-            return result[0]
+            info = {
+                "id": result[0],
+                "departmentId": result[6],
+                "role": result[9]
+                }
+            return info
         else:
             return False
+        
     @staticmethod
     def updateProgram(id, data):
          

@@ -10,7 +10,7 @@ sys.path.append("client")
 import json
 import dropboxFunc
 
-
+import client 
 from client import Client
 import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -705,6 +705,14 @@ class AddProgramTab(QWidget):
                     self.amountLineEdit.setDisabled(False)
                     pass
                 pass
+            
+            if (client.user["departmentId"] == 4 ) or ( client.user["departmentId"] == 9 and client.user["role"] == 2 ):
+                # self.requestForPayment.setDisabled(False)
+                pass
+            else:
+                self.requestForPayment.setDisabled(True)
+                self.requestForPayment.setText("Only HR can request for budget")
+                
 
                 
             self.titleLineText.setText(title)
