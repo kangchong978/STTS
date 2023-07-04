@@ -23,26 +23,26 @@ class TestStringMethods(unittest.TestCase):
     #        firstRow = result[0]
     #        self.assertEqual(firstRow['id'],  84 )
 
-    def testEditUser(self):
-        userData = {    
-            'username': 'theboss',
-            'departmentId': 4,
-            'role': 0,
-            'id': 36
-        }
-        result = Client.editUser(userData)
+    #def testEditUser(self):
+    #    userData = {    
+    #        'username': 'thebossu',
+    #        'departmentId': 4,
+    #        'role': 0,
+    #        'id': 36
+    #    }
+    #    result = Client.editUser(userData)
+    #    self.assertTrue(result)
+
+    #def testRemoveProgram(self):
+    #    data = {'enable': 0}
+    #    result = Client.removeProgram(data, 40) 
+    #    self.assertTrue(result)
+
+    def testDeleteUser(self):
+        userData = {'id': 26}
+        result = Client.deleteUser(userData)
         self.assertTrue(result)
 
-    # def test_isupper(self):
-    #     self.assertTrue('FOO'.isupper())
-    #     self.assertFalse('Foo'.isupper())
-
-    # def test_split(self):
-    #     s = 'hello world'
-    #     self.assertEqual(s.split(), ['hello', 'world'])
-    #     # check that s.split fails when the separator is not a string
-    #     with self.assertRaises(TypeError):
-    #         s.split(2)
 
 if __name__ == '__main__':
     unittest.main()
