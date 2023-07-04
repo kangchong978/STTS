@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import *
 sys.path.append("client")
 from client import Client
 import datetime
-
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class NotificationsTab(QWidget):
     def __init__(self):
@@ -18,16 +19,23 @@ class NotificationsTab(QWidget):
         self.verticalLayout_8 = QVBoxLayout(self)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
         self.widget_14 = QWidget(self)
+        self.refreshPushButton = QPushButton(self)
+        self.refreshPushButton.setObjectName("refreshPushButton")
+        icon_path = os.path.join(current_dir, "Refresh_icon.svg.png")
+        self.refreshPushButton.setIcon(QIcon(icon_path))
         self.listView = QListWidget(self)
         self.listView.setObjectName("listView")
         self.verticalLayout_8.addWidget(self.listView)
+        self.verticalLayout_8.addWidget(self.refreshPushButton)
         
         self.listView.setStyleSheet("QListView::item:selected { background-color: #fbfbfb; }")
         
-        
+        self.refreshPushButton.pressed.connect(self.updateNotification)
         self.updateDisplayNotificationsList(Client.getNotifications())
-        
-        
+          
+    def updateNotification(self):
+       self.updateDisplayNotificationsList(Client.getNotifications())
+       
     def updateDisplayNotificationsList(self, data):
         self.listView.clear()
         if isinstance(data, list) and len(data) > 0:
@@ -38,6 +46,8 @@ class NotificationsTab(QWidget):
                 listItem.setSizeHint(widget.sizeHint())
                 self.listView.addItem(listItem)
                 self.listView.setItemWidget(listItem, widget)
+                if item['reached'] == 0:
+                    Client.updatenotifications(item["id"])
             pass
         pass
     
@@ -70,20 +80,24 @@ class NotificationsTab(QWidget):
                     badge = "<font color='red'>* </font>"
                 pass
             if 'timestamp' in item and isinstance(item['timestamp'], int) and item['timestamp'] is not None:
-                timestamp = item['timestamp']
+                timestamp = 1688399250407 / 1000  # Convert milliseconds to seconds
+                datetime_obj = datetime.datetime.fromtimestamp(timestamp)
+                dateTimeText = datetime_obj.strftime("%d/%m/%Y %H:%M:%S")
                 current_date = datetime.datetime.now().date()
-                item_date = datetime.datetime.fromtimestamp(timestamp).date()
-
+                item_date = datetime_obj.date()
                 if item_date == current_date:
-                    dateTimeText = datetime.datetime.fromtimestamp(timestamp).strftime('%H:%M')
+                    dateTimeText = datetime_obj.strftime("%H:%M")
                 else:
-                    dateTimeText = datetime.datetime.fromtimestamp(timestamp).strftime('%d %b %y')
+                    dateTimeText = datetime_obj.strftime("%d %b %y")
 
             #TODO   
-            if 'programId' in item and isinstance(item['programId'], dict) and item['programId'] != None:
-                if 'title' in item['programId'] and isinstance(item['programId']['title'], str) and item['programId']['title'] != None:
-                    programTitle = item['programId']['title']
-            
+            if 'programId' in item and isinstance(item['programId'], int) and item['programId'] != None:
+                # if 'title' in item['programId'] and isinstance(item['programId']['title'], str) and item['programId']['title'] != None:
+                #     # programTitle = item['programId']['title']
+
+                programTitle = Client.getProgramById(item['programId'])[0]['title']
+
+
             if 'type' in item and isinstance(item['type'], int) and item['type'] != None:
                 type = item['type']
                 if type == 0:
@@ -108,6 +122,7 @@ class NotificationsTab(QWidget):
                         pass
                         # 
                     pass
+
                 elif type == 1:
                     if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
                         innerType = item['innerType']
@@ -126,15 +141,28 @@ class NotificationsTab(QWidget):
                     if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
                         innerType = item['innerType']
                         if innerType == 0:
-                            messageText = f"The <b>{programTitle}</b>e is <font color='grey'>Closed</font>."
+                            messageText = f"The <b>{programTitle}</b> is <font color='grey'>Closed</font>."
                             # 
                             pass
                         elif innerType == 1:    
-                            messageText = f"The <b>{programTitle}</b>e is <font color='grey'>Removed</font>."
+                            messageText = f"The <b>{programTitle}</b> is <font color='grey'>Removed</font>."
                             # 
                             pass
                         pass
                         # 
+
+                elif type == 3:
+                    if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
+                        innerType = item['innerType']
+                        if innerType == 0:
+                            messageText = f"The payment for <b>{programTitle}</b>e is approved<font color='grey'></font>."
+                            # 
+                            pass
+                        elif innerType == 1:    
+                            messageText = f"The payment for <b>{programTitle}</b>e is declined<font color='grey'></font>."
+                            # 
+                            pass
+                        pass
                     pass
                 pass
             pass

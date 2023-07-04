@@ -11,6 +11,8 @@ import requests
 import datetime
 import json
 import client
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class ProgramsTab(QWidget):
     def __init__(self):
@@ -18,7 +20,7 @@ class ProgramsTab(QWidget):
         
 
         self.programsData = Client.getPrograms()
-        
+        # *, 0, 1,2,3
         self.filterOptions = ['All','Available', 'Pending', 'Enrolled', 'Rejected']
         self.filterText = ""
         self.filerOption = 0
@@ -35,7 +37,14 @@ class ProgramsTab(QWidget):
         self.horizontalLayout.addWidget(self.searchLineEdit)
         self.comboBox = QComboBox(self)
         self.comboBox.setObjectName("comboBox")
+        self.refreshPushButton = QPushButton(self)
+        self.refreshPushButton.setObjectName("refreshPushButton")
+        icon_path = os.path.join(current_dir, "Refresh_icon.svg.png")
+        self.refreshPushButton.setIcon(QIcon(icon_path))
+        self.refreshPushButton.clicked.connect(self.handleSearchChanged)
         self.horizontalLayout.addWidget(self.comboBox)
+        self.horizontalLayout.addWidget(self.refreshPushButton)
+
         self.verticalLayout_3.addLayout(self.horizontalLayout)
         self.programsListWidget = QListWidget(self)
         self.programsListWidget.setObjectName("programsListWidget")
@@ -77,6 +86,10 @@ class ProgramsTab(QWidget):
         self.locationLabel.setObjectName("locationLabel")
         self.locationLabel.setWordWrap(1)
         self.verticalLayout_10.addWidget(self.locationLabel)
+        self.participantsLabel = QLabel(self.scrollAreaWidgetContents_5)
+        self.participantsLabel.setObjectName("participantsLabel")
+        self.participantsLabel.setWordWrap(1)
+        self.verticalLayout_10.addWidget(self.participantsLabel)
         self.frame = QFrame(self.scrollAreaWidgetContents_5)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -93,15 +106,17 @@ class ProgramsTab(QWidget):
         self.enrollPushButton = QPushButton(self)
         self.enrollPushButton.setObjectName("enrollPushButton")
         self.verticalLayout_9.addWidget(self.enrollPushButton)
+
         self.horizontalLayout_2.addLayout(self.verticalLayout_9)
         self.horizontalLayout_2.setStretch(1, 2)
         
         self.programsListWidget.currentRowChanged.connect(self.handleSearchReturned)
         self.searchLineEdit.textChanged.connect(self.handleSearchChanged)
         self.searchLineEdit.returnPressed.connect(self.handleSearchReturned)
+        self.refreshPushButton.pressed.connect(self.handleRefresh)
         
         self.searchLineEdit.setPlaceholderText("Search")
-        self.userPrograms = self.getClientEnrolledPrograms()
+        self.userProgramApprovements = self.getClientEnrolledPrograms()
         self.updateDisplayProgramsList(self.programsData)
         self.programsListWidget.setSelectionMode(QAbstractItemView.NoSelection)
         self.programsListWidget.setStyleSheet("QListWidget { background-color: transparent; }")
@@ -109,19 +124,21 @@ class ProgramsTab(QWidget):
         
         self.comboBox.currentIndexChanged.connect(self.handleComboBoxSelection)
     
+    def handleRefresh(self):
+        self.programsData = Client.getPrograms()
+        self.userProgramApprovements = self.getClientEnrolledPrograms()
+        self.handleSearchChanged()
     
-    
-    def handleSearchChanged(self,text):
-        self.filterText = text
+    def handleSearchChanged(self):
+        # self.programsData = Client.getPrograms()
         self.filterPrograms()
        
     def handleComboBoxSelection(self, index):
         self.filerOption = index
         self.filterPrograms()
 
-    
     def filterPrograms(self):
-        text = self.filterText
+        text = self.searchLineEdit.text()
         filterProgramsData = self.programsData
         if self.filerOption != 0:
             stateFilter = None
@@ -163,7 +180,8 @@ class ProgramsTab(QWidget):
             filterProgramsData = result
             pass
         self.updateDisplayProgramsList(filterProgramsData)
-        self.handleSearchReturned()
+        # self.handleSearchReturned()
+
 
 
         
@@ -179,15 +197,24 @@ class ProgramsTab(QWidget):
                 self.programsListWidget.setCurrentRow(index)
                 self.updateDisplayInformationView(i)
                 
-    def getClientEnrolledPrograms(self):
+    def getClientApprovements(self):
+        approvements = []
         #TODO
         userData = client.user
-        self.currentUser = Client.getUser(userData["username"])
-        if 'programs' in self.currentUser and isinstance(self.currentUser ['programs'], str) and self.currentUser ['programs'] is not None:
-            parsed = json.loads(self.currentUser ['programs'])
-            if 'programs' in parsed and isinstance(parsed ['programs'], list) and parsed['programs'] is not None:
-                return parsed['programs']
-                pass
+        self.currentUser = Client.getUser(userData["id"])
+        if 'approvementIds' in self.currentUser and isinstance(self.currentUser ['approvementIds'], str) and self.currentUser ['approvementIds'] is not '':
+            parsed = json.loads(self.currentUser ['approvementIds'])
+            if 'approvementIds' in parsed and isinstance(parsed ['approvementIds'], list) and parsed['approvementIds'] is not None:
+                approvements = parsed['approvementIds']
+                    
+        return approvements
+    
+    def getClientEnrolledPrograms(self):
+        approvements = self.getClientApprovements()
+        if isinstance(approvements, list):
+            programs = Client.getUserApprovementByIds(approvements)
+            return programs
+        
                 
     def updateDisplayProgramsList(self, data):
         self.programsListWidget.clear()
@@ -195,10 +222,12 @@ class ProgramsTab(QWidget):
         if isinstance(data, list) and len(data) > 0:
             for item in data:
                 programsApprovementStat = None
-                if isinstance(self.userPrograms, list) and len(self.userPrograms) > 0:
-                    found_items = [a for a in self.userPrograms if a.get('id')== item['id']]
+                if isinstance(self.userProgramApprovements, list) and len(self.userProgramApprovements) > 0:
+                    found_items = [a for a in self.userProgramApprovements if a.get('programId')== item['id']]
                     if len(found_items) > 0:
-                        item["enrollStatusCode"] = found_items[0]["approvementStatusCode"]
+                        item["enrollStatusCode"] = found_items[0]["approveStatus"]
+                        item["approvementId"] = found_items[0]["id"]
+                        
                     pass
                     
                 widget = self.createWidget(item)
@@ -219,6 +248,8 @@ class ProgramsTab(QWidget):
                 subtitle = "Unknown"
                 dateTime = "Unknown"
                 location = "Unknown"
+                participants = ""
+                
                 
                 if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
                     title = item['title']
@@ -233,10 +264,21 @@ class ProgramsTab(QWidget):
                     timestamp = item['timestamp']
                     dateTime = f"{datetime.datetime.fromtimestamp(timestamp).strftime('%d %b %y')}"
                     
+                
+                        
+                    
                 pass
                 if 'location' in item and isinstance(item['location'], str) and item['location'] != None:
                     location = item['location']
                 pass
+                if 'users' in item and isinstance(item['users'], str) and item['users'] != '':
+                    parsed = json.loads(item['users'])
+                    if 'users' in parsed and isinstance(parsed['users'], list) and parsed['users'] is not None:
+                        user_ids = parsed['users']
+                        users = Client.getUsersByIds(user_ids)
+                        participants = ',   '.join([user.get('username', 'Unknown') for user in users])
+                        # Use the 'participants' string as needed
+                
                 self.titleLabel.setText(title)
                 image = QImage()
                 try:
@@ -249,6 +291,7 @@ class ProgramsTab(QWidget):
                 self.subtitleLabel.setOpenExternalLinks(True)
                 self.dateTimeLabel.setText(dateTime)
                 self.locationLabel.setText(location)
+                self.participantsLabel.setText(participants)
                 if self.enrollPushButton.receivers(self.enrollPushButton.clicked) > 0:
                     self.enrollPushButton.clicked.disconnect()
 
@@ -269,6 +312,16 @@ class ProgramsTab(QWidget):
                         self.enrollPushButton.setEnabled(True)
                         self.enrollPushButton.clicked.connect(self.showCancelEnrollmentFormDialog)
                         pass
+                    elif item['enrollStatusCode'] == 3:
+                        self.enrollPushButton.setText("Enroll now")
+                        self.enrollPushButton.setEnabled(True)
+                        self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
+                        pass
+                    elif item['enrollStatusCode'] == 4:
+                        self.enrollPushButton.setText("Enrolled by department")
+                        self.enrollPushButton.setEnabled(False)
+                        self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                        pass
                     else:
                         self.enrollPushButton.setText("Enroll now")
                         self.enrollPushButton.setEnabled(False)
@@ -280,35 +333,38 @@ class ProgramsTab(QWidget):
                     self.enrollPushButton.setEnabled(False)
                     self.enrollPushButton.clicked.connect(self.noneNoneDialog)
                     pass
+                
+                if 'paymentStatus' in item and isinstance(item['paymentStatus'], int) and item['paymentStatus'] != None:
+                    paymentStatus = item['paymentStatus']
+                    if paymentStatus == 0 or paymentStatus == 3:
+                        self.enrollPushButton.setEnabled(True)
+                    elif paymentStatus == 1   :
+                        self.enrollPushButton.setEnabled(False)
+                        self.enrollPushButton.setText("Pending for payment")
+                    elif paymentStatus == 1 or paymentStatus == 2 :
+                        self.enrollPushButton.setEnabled(False)
+                        self.enrollPushButton.setText("Payment is done")
             pass
         pass
+
+
     
     def showCancelEnrollmentFormDialog(self):
         currentData = self.programsListWidget.currentItem().data(Qt.UserRole)
         formDialog = EnrolmentDialog(self, type = 1, programName = currentData['title'])
         if formDialog.exec_() == QDialog.Accepted:
-            # print("Yes")
+            approveId = Client.updateApprovalStatusById({"id":currentData['approvementId'], 'approveStatus': 0})
+             
+            self.handleRefresh()
             
-            currentData['enrollStatusCode'] = 1
-            found_items = [a for a in self.userPrograms if a.get('id') == currentData['id']]
-
-            if found_items:
-                found_items[0]['approvementStatusCode'] = 0
-                index = self.userPrograms.index(found_items[0])
-                self.userPrograms[index] = found_items[0]
-            else:
-                self.userPrograms.append({'id': currentData['id'], 'approvementStatusCode': 0})
-            
-            result = Client.updateUserProgramApprovements(self.currentUser['id'], self.userPrograms)
-            if result == True:
-                currentIndex = self.programsListWidget.currentIndex().row()
-                self.programsData = Client.getPrograms()
-                self.userPrograms = self.getClientEnrolledPrograms()
-                self.updateDisplayProgramsList(self.programsData)
+            currentIndex = self.programsListWidget.currentIndex().row()
+              
+                
+            if(currentIndex != None):
                 self.programsListWidget.setCurrentRow(currentIndex)
                 self.updateDisplayInformationView(currentIndex)
-                pass
-            print(currentData)
+            pass
+            
             
         pass
     
@@ -317,34 +373,51 @@ class ProgramsTab(QWidget):
         currentData = self.programsListWidget.currentItem().data(Qt.UserRole)
         formDialog = EnrolmentDialog(self, type = 0, programName = currentData['title'])
         if formDialog.exec_() == QDialog.Accepted:
-            currentData['enrollStatusCode'] = 1
-            found_items = [a for a in self.userPrograms if a.get('id') == currentData['id']]
-
-            if found_items:
-                found_items[0]['approvementStatusCode'] = 1
-                index = self.userPrograms.index(found_items[0])
-                self.userPrograms[index] = found_items[0]
-            else:
-                self.userPrograms.append({'id': currentData['id'], 'approvementStatusCode': 1})
             
-            result = Client.updateUserProgramApprovements(self.currentUser['id'], self.userPrograms)
+            if currentData.get('approvementId'):
+                approveId = Client.updateApprovalStatusById({"id":currentData['approvementId'], 'approveStatus': 1})
+                result = True
+            else:
+                approveId = Client.addNewApproval({"userId":self.currentUser["id"], "programId":currentData['id'], 'approveStatus': 1})
+                newApprovements = self.getClientApprovements()
+                newApprovements.append(approveId)
+                result = Client.updateUserProgramApprovements(self.currentUser['id'], newApprovements)
+             
             if result == True:
+                
                 currentIndex = self.programsListWidget.currentIndex().row()
                 self.programsData = Client.getPrograms()
                 self.userPrograms = self.getClientEnrolledPrograms()
                 self.updateDisplayProgramsList(self.programsData)
+                #modified
+                self.notifyHR(currentData["id"]) 
+
+                self.handleRefresh()
                 
+                currentIndex = self.programsListWidget.currentIndex().row()
+                 
                 if(currentIndex != None):
                     self.programsListWidget.setCurrentRow(currentIndex)
                     self.updateDisplayInformationView(currentIndex)
                 pass
-            print(currentData)
+           
             
         pass
-    
+           
     def noneNoneDialog(self):
         pass
     
+
+    #todo 
+    #modified
+    def notifyHR(self, programId):
+        hrs = Client.getUsersByDepartments([9])
+        notificationData = {
+            "type":0,
+            "innerType":0,
+            "programId": int(programId),
+        }
+        Client.addNewnotifications([item['id'] for item in hrs], notificationData)
 
 
     def createWidget(self, item):
@@ -371,6 +444,10 @@ class ProgramsTab(QWidget):
                 statusText = "Enrolled"
             elif item['enrollStatusCode'] == 3:
                 statusText = "Rejected"
+            elif item['enrollStatusCode'] == 4:
+                statusText = "Department Enrolled"
+        elif 'enrollStatusCode' not in item :
+            statusText = "Available"
 
         statusLabel.setText(statusText)
         statusLabel.setFixedWidth(100)

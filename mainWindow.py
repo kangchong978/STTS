@@ -10,6 +10,7 @@ from components.login import LoginWindow
 import client
 from PyQt5.QtGui import QIcon
 
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QDialog, QMainWindow, QPushButton
 
@@ -33,12 +34,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tab6 = UserTab()
         self.tab7 = NotificationsTab()
         
+        # role 0 staff, 1 assistant, 2 head
         self.tabWidget.addTab(self.tab1, "Programs")
-        self.tabWidget.addTab(self.tab2, "Add Programs")
-        # self.tabWidget.addTab(self.tab3, "Details")
-        self.tabWidget.addTab(self.tab4, "Approvals")
-        self.tabWidget.addTab(self.tab5, "Account")
-        self.tabWidget.addTab(self.tab6, "Users")
+        if (client.user["departmentId"] == 4 ) or ( client.user["departmentId"] == 9 and (client.user["role"] == 1 or client.user["role"] == 2) ):
+            self.tabWidget.addTab(self.tab2, "Add Programs")
+        if (client.user["departmentId"] == 4 ) or ( client.user["departmentId"] == 9 and (client.user["role"] == 1 or client.user["role"] == 2) ):
+            self.tabWidget.addTab(self.tab4, "Approvals")
+        if (client.user["departmentId"] == 4 ) or ( client.user["departmentId"] == 8 and (client.user["role"] == 1 or client.user["role"] == 2) ):
+            self.tabWidget.addTab(self.tab5, "Account")
+        if (client.user["departmentId"] == 4 ):
+            self.tabWidget.addTab(self.tab6, "Users")
         self.tabWidget.addTab(self.tab7, "Notifications")
 
 
@@ -55,7 +60,6 @@ class MainWindow(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-  
     dialog = LoginWindow()
     if dialog.exec_() == QDialog.Accepted:
         window = MainWindow()

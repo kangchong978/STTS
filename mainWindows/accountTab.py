@@ -1,5 +1,7 @@
 
+import json
 import sys
+import time
 sys.path.append("client")
 from client import Client
 sys.path.append("components")
@@ -33,6 +35,9 @@ class AccountTab(QWidget):
         self.pushButton_64 = QPushButton(self.widget_4)
         self.pushButton_64.setObjectName("pushButton_64")
         self.horizontalLayout_5.addWidget(self.pushButton_64)
+        self.pushButton_65 = QPushButton(self.widget_4)
+        self.pushButton_65.setObjectName("pushButton_65")
+        self.horizontalLayout_5.addWidget(self.pushButton_65)
         self.horizontalLayout_5.addWidget(self.frame_6)
 
         self.verticalLayout_7.addWidget(self.widget_4)
@@ -52,11 +57,20 @@ class AccountTab(QWidget):
         self.verticalLayout_7.addWidget(self.listView)
         self.label_1.setText("Company Amount")
         self.pushButton_64.setText("Update Amount")
+        self.pushButton_65.setText("Refresh")
+        
         self.searchLineEdit.setPlaceholderText("Search")
         self.updateAccountDetails()
         self.updateDisplayApprovementList(self.progaramsData)
         self.searchLineEdit.textChanged.connect(self.searchPrograms)  # Connect Search bar signal to function
         self.pushButton_64.clicked.connect(self.showUpdateAmountDialog)  # Connect button signal to dialog function
+        self.pushButton_65.clicked.connect(self.refreshListAndAccount)  # Connect button signal to dialog function
+        
+    def refreshListAndAccount(self):
+        self.accountData = Client.getAccount()
+        self.updateAccountDetails()
+        self.progaramsData = Client.getPrograms()
+        self.updateDisplayApprovementList(self.progaramsData)
         
     def updateAccountDetails(self):
         data =  self.accountData
@@ -118,21 +132,25 @@ class AccountTab(QWidget):
         paymentRejectButton = QPushButton(widget)
         paymentRejectButton.setObjectName("paymentRejectButton")
         paymentRejectButton.setFixedWidth(100)
-        
+        status = QLabel(widget)
         paymentDoneButton.setText("Done")
         paymentRejectButton.setText("Reject")
         
-      
-        
         programTitle = "Unknown"
         programTotalCost = "0.00"
+        totalUsers = 0
        
         
         if isinstance(item, dict):
             if 'title' in item and isinstance(item['title'], str) and item['title'] != None:
                     programTitle = item['title']
+            if 'users' in item and isinstance(item['users'], str) and item['users'] != '':
+                    parsed = json.loads(item['users'])
+                    if 'users' in parsed and isinstance(parsed['users'], list) and parsed['users'] is not None:
+                        totalUsers = len(parsed['users'])
+                        # participants = ',   '.join([user.get('username', 'Unknown') for user in users])
             if 'cost' in item and isinstance(item['cost'], float) and item['cost'] != None:
-                    programTotalCost = "{:.2f}".format(item['cost'])
+                    programTotalCost = "{:.2f}".format(item['cost'] * totalUsers)
     
         
         programNameLabel.setText( programTitle)
@@ -140,29 +158,140 @@ class AccountTab(QWidget):
         
         horizontalLayout.addWidget(programCostLabel)
         horizontalLayout.addWidget(programNameLabel)
-        horizontalLayout.addWidget(paymentDoneButton)
-        horizontalLayout.addWidget(paymentRejectButton)
+        if item['paymentStatus'] == 0: 
+            status.setHidden(False)
+            status.setText("No Request")
+            paymentDoneButton.setHidden(True)
+            paymentRejectButton.setHidden(True)
+            horizontalLayout.addWidget(status)
+            pass
+        elif item['paymentStatus'] == 1:
+            status.setHidden(True)
+            horizontalLayout.addWidget(paymentDoneButton)
+            horizontalLayout.addWidget(paymentRejectButton)
+        elif item['paymentStatus'] == 2: 
+            status.setHidden(False)
+            status.setText("Payment Done")
+            paymentDoneButton.setHidden(True)
+            paymentRejectButton.setHidden(True)
+            horizontalLayout.addWidget(status)
+        elif item['paymentStatus'] == 3: 
+            status.setHidden(False)
+            status.setText("Payment Rejected")
+            paymentDoneButton.setHidden(True)
+            paymentRejectButton.setHidden(True)
+            horizontalLayout.addWidget(status)
         horizontalLayout.setStretch(1,2)
         
+        paymentDoneButton.pressed.connect(lambda: self.updatePaymentDone(item))
+        paymentRejectButton.pressed.connect(lambda: self.updatePaymentDenied(item))
+        
         return widget
+    
+
+
+    def updatePaymentDone(self, item):
+        self.showPaymentDoneDialog(item)
+        self.updateDisplayApprovementList(Client.getPrograms())
+        if 'users' in item and isinstance(item ['users'], str) and item['users'] != '':
+                    parsed = json.loads(item ['users'])
+                    if 'users' in parsed and isinstance(parsed ['users'], list) and parsed['users'] != None:
+                        parsedUsers = parsed['users']
+                        
+                        self.notifyUserApproved(parsedUsers,item['id'])  
+        pass
+    
+    def updatePaymentDenied(self, item):
+        Client.updateProgramPayment(item["id"],{"paymentStatus":3})
+        self.updateDisplayApprovementList(Client.getPrograms())
+        if 'users' in item and isinstance(item ['users'], str) and item['users'] != '':
+            parsed = json.loads(item ['users'])
+            if 'users' in parsed and isinstance(parsed ['users'], list) and parsed['users'] != None:
+                parsedUsers = parsed['users']
+                
+                self.notifyUserDeclined(parsedUsers,item['id'])  
+        pass
     
     def showUpdateAmountDialog(self):
         currentAmount = self.accountData.get("amount", 0.0)
         newAmount, ok = QInputDialog.getDouble(self, "Update Amount", "Enter new amount:", currentAmount, decimals=2)
         if ok:
-            #TODO
-            # Save the new amount
             self.accountData["amount"] = newAmount
-            # self.updateAccountDetails()
-            # Update the account data on the server
+            self.accountData["updatedTimestamp"] = int(time.time() * 1000)
             result =  Client.updateAccount(self.accountData)
-            # print(result)
             if result == True:
                 self.accountData = Client.getAccount()
                 self.updateAccountDetails()
+    
+    def showPaymentDoneDialog(self, item):
+        currentAmount = self.accountData.get("amount", 0.0)
+        programCost = item.get("cost", 0.0)
+        totalUsers = 0
+        if 'users' in item and isinstance(item['users'], str) and item['users'] != '':
+                    parsed = json.loads(item['users'])
+                    if 'users' in parsed and isinstance(parsed['users'], list) and parsed['users'] is not None:
+                        totalUsers = len(parsed['users'])
+        totalCost=  (programCost*totalUsers)
+        remainingAmount = currentAmount - totalCost
+
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setWindowTitle("Payment Confirmation")
+        msgBox.setText(f"The cost of the program is: ${totalCost:.2f}")
+        msgBox.setInformativeText(f"The remaining amount will be: ${remainingAmount:.2f}")
+        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+
+        if remainingAmount < 0:
+            msgBox.setDisabled(True)
+            msgBox.setInformativeText("Insufficient funds. Cannot proceed with the payment.")
+        else:
+            msgBox.setDefaultButton(QMessageBox.Ok)
+
+        response = msgBox.exec_()
+        if response == QMessageBox.Ok and remainingAmount >= 0:
+            # Proceed with the payment
+            newAmount = remainingAmount
+            previousAmount = currentAmount
+            programId = item.get("id")
+            timestamp =  int(time.time() * 1000)
+
+            accountData = {
+                "amount": newAmount,
+                "previousAmount": previousAmount,
+                "programId": programId,
+                "updatedTimestamp": timestamp,
+            }
+            result = Client.updateAccount(accountData)
+            Client.updateProgramPayment(item['id'],{"paymentStatus":2})
+            if result:
                 
+                self.accountData = Client.getAccount()
+                self.updateAccountDetails()
             
-            
+
+
+    def notifyUserApproved(self,users,programId):
+
+        notificationData = {
+            "type": 3,
+            "innerType": 0,
+            "programId": int(programId),
+        }
+
+        Client.addNewnotifications(users, notificationData)
+
+        
+    def notifyUserDeclined(self,users,programId):
+    
+        notificationData = {
+            "type": 3,
+            "innerType": 1,
+            "programId": int(programId),
+        }
+
+        Client.addNewnotifications(users, notificationData)
+
+
 class CustomWidget(QWidget):
     def sizeHint(self):
         return QSize(self.width(), self.height())

@@ -1,9 +1,10 @@
 import json
 import mysql.connector
 from tqdm import tqdm
-from PyQt5.QtWidgets import QApplication, QProgressDialog
+# from PyQt5.QtWidgets import QApplication, QProgressDialog
 import json
-
+import time
+from utils import parseToDictWithProgress
 user = None
 
 # Load settings from settings.json
@@ -42,6 +43,12 @@ class Client:
         cursor.execute("SELECT * FROM programs WHERE enable = 1")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Programs')
+    
+    @staticmethod
+    def getProgramById(id):
+        cursor.execute(f'SELECT * FROM programs WHERE enable = 1 and id = {id}')
+        results = cursor.fetchall()
+        return Client.parseToDictWithProgress(results, 'Fetching Program')
 
     @staticmethod
     def getUsers():
@@ -50,8 +57,24 @@ class Client:
         return Client.parseToDictWithProgress(results, 'Fetching Users')
     
     @staticmethod
-    def getUser(username):
-        cursor.execute(f'SELECT * FROM users WHERE username = "{username}"')
+    def getUsersByDepartments(departments):
+        if isinstance(departments, list) and len(departments) > 0:
+            cursor.execute("SELECT * FROM users WHERE departmentId IN (%s)" % ','.join(['%s'] * len(departments)), tuple(departments))
+            results = cursor.fetchall()
+            return Client.parseToDictWithProgress(results, 'Fetching Users')
+        return []
+    
+    @staticmethod
+    def getUsersByIds(user_ids):
+        if isinstance(user_ids, list) and len(user_ids) > 0:
+            cursor.execute("SELECT * FROM users WHERE id IN (%s)" % ','.join(['%s'] * len(user_ids)), tuple(user_ids))
+            results = cursor.fetchall()
+            return Client.parseToDictWithProgress(results, 'Fetching Users')
+        return []
+
+    @staticmethod
+    def getUser(id):
+        cursor.execute(f'SELECT * FROM users WHERE id = "{id}"')
         results = cursor.fetchall()
         parsed = Client.parseToDictWithProgress(results, 'Fetching Users')
         if len(parsed) > 0:
@@ -61,14 +84,15 @@ class Client:
 
     @staticmethod
     def getNotifications():
-        cursor.execute("SELECT * FROM notifications")
+        cursor.execute(f'SELECT * FROM notifications WHERE userId = "{user["id"]}" ORDER BY timestamp DESC')
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Notifications')
+ 
 
     @staticmethod
     def getAccount():
         # latest 1 only
-        cursor.execute("SELECT * FROM company ORDER BY updatedTimestamp DESC LIMIT 1")
+        cursor.execute("SELECT * FROM company ORDER BY id DESC LIMIT 1")
         results = cursor.fetchall()
         parsed = Client.parseToDictWithProgress(results, 'Fetching Account')
         if len(parsed) > 0:
@@ -77,7 +101,7 @@ class Client:
 
     @staticmethod
     def getApproval():
-        cursor.execute("SELECT * FROM approval")
+        cursor.execute("SELECT * FROM approval ORDER BY programId DESC")
         results = cursor.fetchall()
         return Client.parseToDictWithProgress(results, 'Fetching Approval')
 
@@ -112,21 +136,7 @@ class Client:
 
     @staticmethod
     def parseToDictWithProgress(data, desc):
-        result_list = []
-        columns = [column[0] for column in cursor.description]  # Get the column names
-
-        progress_dialog = QProgressDialog(desc, None, 0, len(data))
-        progress_dialog.setWindowModality(1)  # Set the dialog to modal
-        progress_dialog.setWindowTitle("Progress")
-        progress_dialog.show()
-
-        for i, row in enumerate(data):
-            result_dict = dict(zip(columns, row))
-            result_list.append(result_dict)
-            progress_dialog.setValue(i + 1)
-            QApplication.processEvents()  # Process events to keep GUI responsive
-
-
+        result_list =  parseToDictWithProgress(data, 'Fetching Programs', cursor)
         return result_list
 
     @staticmethod
@@ -151,8 +161,8 @@ class Client:
 
     @staticmethod
     def updateUserProgramApprovements(id, programsData):
-        query = "UPDATE users SET programs = %s WHERE id = %s"
-        values = (f'{{"programs":{json.dumps(programsData)}}}', id)
+        query = "UPDATE users SET approvementIds = %s WHERE id = %s"
+        values = (f'{{"approvementIds":{json.dumps(programsData)}}}', id)
 
         Client.executeWithProgress(query, values, 'Updating User Program Approvements')
 
@@ -160,6 +170,23 @@ class Client:
             return True
         else:
             return False
+        
+        
+        
+    @staticmethod
+    def getUserApprovementByIds(ids):
+        if isinstance(ids,list) and len(ids):
+            query = "SELECT * FROM approval WHERE id IN (%s)"
+            id_placeholders = ','.join(['%s'] * len(ids))
+            query = query % id_placeholders
+            values = tuple(ids)
+
+            cursor.execute(query, values)
+            results = cursor.fetchall()
+            return Client.parseToDictWithProgress(results, 'Fetching Company')
+        else:
+            return []
+
 
     @staticmethod
     def updateApproval(approvalData):
@@ -176,8 +203,8 @@ class Client:
 
     @staticmethod
     def insertUser(userData):
-        query = "INSERT INTO users (id, username, departmentId) VALUES (%s, %s, %s)"
-        values = (userData['id'], userData['username'], userData['departmentId'])
+        query = "INSERT INTO users ( username, departmentId) VALUES ( %s, %s)"
+        values = ( userData['username'], userData['departmentId'])
 
         Client.executeWithProgress(query, values, 'Inserting User')
 
@@ -193,25 +220,37 @@ class Client:
 
         cursor.execute(query, values)
         result = cursor.fetchone()
-
-        if result is None:
-            return False
-
-        # Assuming the password is stored in the database as a hash, compare it with the provided password
-        # You may need to adapt this part based on how passwords are stored and hashed in your database
-        # Assuming the password is stored in the second column (index 1) of the query result
-        stored_password = result[1]
+        stored_password = result[2]
 
         if stored_password == password:
+            info = {
+                "id": result[0],
+                "departmentId": result[6],
+                "role": result[9]
+                }
+            return info
+        else:
+            return False
+        
+    @staticmethod
+    def updateProgram(id, data):
+         
+        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s, users = %s, cost = %s"\
+            "WHERE id = %s"
+        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], data['users'], data['cost'], id)
+        
+        Client.executeWithProgress(query, values, 'Updating program')
+        
+        if cursor.rowcount > 0:
             return True
         else:
             return False
     @staticmethod
-    def updateProgram(id, data):
+    def updateProgramUsers(id, data):
          
-        query = "UPDATE programs SET title = %s, imageUrl = %s, description = %s, timestamp = %s, location = %s, departments = %s " \
+        query = "UPDATE programs SET users = %s "\
             "WHERE id = %s"
-        values = (data['title'], data['imageUrl'], data['description'], data['timestamp'], data['location'], data['departments'], id)
+        values = (  data['users'] , id)
         
         Client.executeWithProgress(query, values, 'Updating program')
         
@@ -270,6 +309,94 @@ class Client:
 
         Client.executeWithProgress(query, values, 'Editing User')  
 
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+    
+    def updateProgramPayment(id, data):
+        # 0(pending), 1(approved), 2(rejected)
+        query = "UPDATE programs SET paymentStatus = %s"
+        values = [data['paymentStatus']]
+
+        if data.get('cost') is not None:
+            query += ", cost = %s"
+            values.append(data['cost'])
+
+        if data.get('users') is not None:
+            query += ", users = %s"
+            values.append(data['users'])
+
+        if data.get('departments') is not None:
+            query += ", departments = %s"
+            values.append(data['departments'])
+
+        query += " WHERE id = %s"
+        values.append(id)
+
+        Client.executeWithProgress(query, tuple(values), 'Editing User')
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+    def addNewnotification(userid, data):
+        query = "INSERT INTO notifications (userid, type, innerType, timestamp, programId) VALUES (%s, %s, %s, %s, %s)"
+        values = (userid, data['type'], data['innerType'],   int(time.time() * 1000), data['programId'])
+
+        Client.executeWithProgress(query, values, 'Editing User')  
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+        
+    def addNewnotifications(user_ids, data):
+        query = "INSERT INTO notifications (userid, type, innerType, timestamp, programId) VALUES (%s, %s, %s, %s, %s)"
+        current_timestamp = int(time.time() * 1000)
+        success_count = 0
+
+        for user_id in user_ids:
+            values = (user_id, data['type'], data['innerType'], current_timestamp, data['programId'])
+            success = Client.executeWithProgress(query, values, 'Editing User')
+            if success:
+                success_count += 1
+
+        return success_count == len(user_ids)
+    
+         
+    def updatenotifications(id):
+        query = f"UPDATE notifications SET reached = 1 WHERE id = %s"
+        values = (id,)
+        Client.executeWithProgress(query, values, 'Updating notifications status')
+        # connection.commit()
+
+        if cursor.rowcount > 0:
+            return True
+        else:
+            return False
+         
+    
+    def addNewApproval(data):
+        query = "INSERT INTO approval (userid, programId, approveStatus) VALUES (%s, %s, %s)"
+        values = (data['userId'], data['programId'], data['approveStatus'])
+
+        Client.executeWithProgress(query, values, 'Adding approvement request')  
+        result = cursor.fetchone()
+
+        if cursor.lastrowid:
+            return cursor.lastrowid
+        else:
+            return False
+        
+    def updateApprovalStatusById(data):
+        query = "UPDATE approval SET approveStatus = %s WHERE id = %s"
+        values = (data["approveStatus"], data["id"])
+
+        Client.executeWithProgress(query, values, 'Updating approval status')
+        connection.commit()
 
         if cursor.rowcount > 0:
             return True
