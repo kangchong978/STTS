@@ -307,7 +307,6 @@ class Client:
 
         Client.executeWithProgress(query, values, 'Editing User')  
 
-
         if cursor.rowcount > 0:
             return True
         else:
