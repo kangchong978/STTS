@@ -5,9 +5,8 @@ import sys
 sys.path.append("client")
 from client import Client
 
-
 class AddUserDataWindow(QDialog):
-    def __init__(self, parent=None, isAdd = False):
+    def __init__(self, parent=None, isAdd=False):
         super(AddUserDataWindow, self).__init__(parent)
         self.setWindowTitle("Add User Data")
         self.setWindowModality(Qt.ApplicationModal)
@@ -16,10 +15,8 @@ class AddUserDataWindow(QDialog):
 
         self.lineEditUserID = QLineEdit(self)
         self.lineEditUserID.setObjectName("lineEditUserID")
-        if isAdd == True:
+        if isAdd:
             self.lineEditUserID.setHidden(True)
-        
-        # self.lineEditUserID.setPlaceholderText("User ID")
         layout.addWidget(self.lineEditUserID)
 
         self.lineEditUsername = QLineEdit(self)
@@ -31,6 +28,10 @@ class AddUserDataWindow(QDialog):
         self.comboBoxDepartment.setObjectName("comboBoxDepartment")
         layout.addWidget(self.comboBoxDepartment)
 
+        self.comboBoxRole = QComboBox(self)  # Add role selection combo box
+        self.comboBoxRole.setObjectName("comboBoxRole")
+        layout.addWidget(self.comboBoxRole)
+
         buttonBox = QDialogButtonBox(self)
         buttonBox.setOrientation(Qt.Horizontal)
         buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
@@ -38,7 +39,8 @@ class AddUserDataWindow(QDialog):
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
 
-        self.populateDepartmentComboBox()  # Populate the department combo box
+        self.populateDepartmentComboBox()
+        self.populateRoleComboBox()  # Populate the role combo box
 
     def populateDepartmentComboBox(self):
         departments = Client.getDepartments()
@@ -48,16 +50,24 @@ class AddUserDataWindow(QDialog):
             if departmentName and departmentId:
                 self.comboBoxDepartment.addItem(departmentName, departmentId)
     
+    def populateRoleComboBox(self):
+        roles = ["Staff", "Assistant", "Head"]  # Replace with actual roles from data source
+        for role in roles:
+            self.comboBoxRole.addItem(role)
+    
     def getUserData(self):
-        
         username = self.lineEditUsername.text()
         departmentId = self.comboBoxDepartment.currentData()
         departmentId = int(departmentId) if isinstance(departmentId, int) else None
+        role = self.comboBoxRole.currentText()
+
+        role_mapping = {"Staff": 0, "Assistant": 1, "Head": 2}
+        role_value = role_mapping.get(role, -1)  # Use -1 as default if the role is not found
 
         return {
-            # 'id': int(userID),
             'username': username,
-            'departmentId': departmentId
+            'departmentId': departmentId,
+            'role': role_value
         }
 
 
@@ -158,7 +168,6 @@ class UserTab(QWidget):
         userIDtext = "Unknown"
         if 'id' in item and isinstance(item['id'], int) and item['id'] is not None:
             userIDtext = f"{item['id']}"
-
         userID.setText(userIDtext)
         userID.setFixedWidth(100)
         horizontalLayout.addWidget(userID)
@@ -168,7 +177,6 @@ class UserTab(QWidget):
         usernametext = "Unknown"
         if 'username' in item and isinstance(item['username'], str) and item['username'] is not None:
             usernametext = item['username']
-
         username.setText(usernametext)
         username.setFixedWidth(100)
         horizontalLayout.addWidget(username)
@@ -184,6 +192,16 @@ class UserTab(QWidget):
         departmentId.setText(departmenttext)
         departmentId.setFixedWidth(100)
         horizontalLayout.addWidget(departmentId)
+
+        role = QLabel(widget)  # Add a label for displaying the role
+        role.setObjectName("role")
+        roletext = "Unknown"
+        if 'role' in item and isinstance(item['role'], int) and item['role'] is not None:
+            role_mapping = {0: "Staff", 1: "Assistant", 2: "Head"}
+            roletext = role_mapping.get(item['role'], -1)
+        role.setText(roletext)
+        role.setFixedWidth(100)
+        horizontalLayout.addWidget(role)
 
         return widget
 
@@ -208,6 +226,12 @@ class UserTab(QWidget):
                     editUserWindow.lineEditUserID.setText(str(userID))
                     editUserWindow.lineEditUsername.setText(userData.get('username'))
                     editUserWindow.comboBoxDepartment.setCurrentIndex(editUserWindow.comboBoxDepartment.findData(userData.get('departmentId'))) 
+                    
+                    # Set default role value
+                    role_mapping = {0: "Staff", 1: "Assistant", 2: "Head"}
+                    role = role_mapping.get(userData.get('role', -1))
+                    if role:
+                        editUserWindow.comboBoxRole.setCurrentText(role)
 
                     if editUserWindow.exec_() == QDialog.Accepted:
                         updatedUserData = editUserWindow.getUserData()

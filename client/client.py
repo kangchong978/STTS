@@ -200,8 +200,8 @@ class Client:
 
     @staticmethod
     def insertUser(userData):
-        query = "INSERT INTO users ( username, departmentId) VALUES ( %s, %s)"
-        values = ( userData['username'], userData['departmentId'])
+        query = "INSERT INTO users ( username, departmentId, role) VALUES ( %s, %s, %s)"
+        values = ( userData['username'], userData['departmentId'], userData['role'])
 
         Client.executeWithProgress(query, values, 'Inserting User')
 
@@ -302,8 +302,8 @@ class Client:
 
     @staticmethod
     def editUser(userData):
-        query = "UPDATE users SET username = %s, departmentId = %s WHERE id = %s"
-        values = (userData['username'], userData['departmentId'], userData['id'])
+        query = "UPDATE users SET username = %s, departmentId = %s, role = %s WHERE id = %s"
+        values = (userData['username'], userData['departmentId'], userData['role'], userData['id'])
 
         Client.executeWithProgress(query, values, 'Editing User')  
 
