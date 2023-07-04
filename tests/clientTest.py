@@ -1,17 +1,18 @@
-# import unittest
 import sys
 sys.path.append("client")
 from client import Client
 
 import unittest
 
-class TestStringMethods(unittest.TestCase):
+class TestClient(unittest.TestCase):
 
     def testCheckCredentialsUser(self):
         result = Client.checkCredentials("admin", "admin123")
-        self.assertEqual(result, 1)
+        self.assertEqual(result["id"], 1)
+        self.assertEqual(result["departmentId"], 4)
+        self.assertEqual(result["role"], 0)
     
-    def test_fetch_programs_SQL(self):
+    def testFetchProgramsSQL(self):
         result = Client.getPrograms()
         if isinstance(result, list) and len(result) > 0:
             firstEnableRow = result[0]
