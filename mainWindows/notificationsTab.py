@@ -94,8 +94,9 @@ class NotificationsTab(QWidget):
             if 'programId' in item and isinstance(item['programId'], int) and item['programId'] != None:
                 # if 'title' in item['programId'] and isinstance(item['programId']['title'], str) and item['programId']['title'] != None:
                 #     # programTitle = item['programId']['title']
-
-                programTitle = Client.getProgramById(item['programId'])[0]['title']
+                result = Client.getProgramById(item['programId'])
+                if len(result) > 0:
+                    programTitle = Client.getProgramById(item['programId'])[0]['title']
 
 
             if 'type' in item and isinstance(item['type'], int) and item['type'] != None:
@@ -155,11 +156,11 @@ class NotificationsTab(QWidget):
                     if 'innerType' in item and isinstance(item['innerType'], int) and item['innerType'] != None:
                         innerType = item['innerType']
                         if innerType == 0:
-                            messageText = f"The payment for <b>{programTitle}</b>e is approved<font color='grey'></font>."
+                            messageText = f"The payment for <b>{programTitle}</b> is approved<font color='grey'></font>."
                             # 
                             pass
                         elif innerType == 1:    
-                            messageText = f"The payment for <b>{programTitle}</b>e is declined<font color='grey'></font>."
+                            messageText = f"The payment for <b>{programTitle}</b> is declined<font color='grey'></font>."
                             # 
                             pass
                         pass
