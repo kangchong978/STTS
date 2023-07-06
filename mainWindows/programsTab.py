@@ -331,7 +331,7 @@ class ProgramsTab(QWidget):
                 else:
                     self.enrollPushButton.setText("Enroll now")
                     self.enrollPushButton.setEnabled(False)
-                    self.enrollPushButton.clicked.connect(self.noneNoneDialog)
+                    self.enrollPushButton.clicked.connect(self.showEnrollmentFormDialog)
                     pass
                 
                 if 'paymentStatus' in item and isinstance(item['paymentStatus'], int) and item['paymentStatus'] != None:
