@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton, QDialog, QDialogButtonBox, QFrame, QComboBox, QMessageBox
 from PyQt5.QtCore import Qt
 import sys
 
@@ -23,6 +23,11 @@ class AddUserDataWindow(QDialog):
         self.lineEditUsername.setObjectName("lineEditUsername")
         self.lineEditUsername.setPlaceholderText("Username")
         layout.addWidget(self.lineEditUsername)
+        
+        self.lineEditPassword = QLineEdit(self)
+        self.lineEditPassword.setObjectName("lineEditPassword")
+        self.lineEditPassword.setPlaceholderText("Password")
+        layout.addWidget(self.lineEditPassword)
 
         self.comboBoxDepartment = QComboBox(self)
         self.comboBoxDepartment.setObjectName("comboBoxDepartment")
@@ -57,6 +62,8 @@ class AddUserDataWindow(QDialog):
     
     def getUserData(self):
         username = self.lineEditUsername.text()
+        password = self.lineEditPassword.text()
+        
         departmentId = self.comboBoxDepartment.currentData()
         departmentId = int(departmentId) if isinstance(departmentId, int) else None
         role = self.comboBoxRole.currentText()
@@ -66,9 +73,16 @@ class AddUserDataWindow(QDialog):
 
         return {
             'username': username,
+            'password': password,
             'departmentId': departmentId,
             'role': role_value
         }
+    
+    def accept(self):
+        if len(self.lineEditPassword.text()) < 6:
+            QMessageBox.warning(self, "Invalid Password", "Password must be at least 6 characters long.")
+        else:
+            super(AddUserDataWindow, self).accept()
 
 
 
